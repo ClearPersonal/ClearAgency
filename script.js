@@ -178,6 +178,7 @@ form.addEventListener('submit', async (e) => {
       body: JSON.stringify({
         _subject:  'New Lead from Clearlyst Website',
         _template: 'table',
+        _captcha:  'false',
         ...data,
       }),
     });
@@ -196,17 +197,20 @@ form.addEventListener('submit', async (e) => {
       throw new Error('Network response was not ok');
     }
   } catch {
-    // Fallback: show error and restore button
+    // Restore button
     btnText.style.display    = 'inline';
     btnLoading.style.display = 'none';
     submitBtn.disabled       = false;
 
-    // Attempt mailto fallback
-    const subject = encodeURIComponent('New Lead from Clearlyst Website');
-    const body = encodeURIComponent(
-      `Name: ${data.name}\nBusiness: ${data.business}\nIndustry: ${data.industry}\nPhone: ${data.phone}\nEmail: ${data.email}\nBudget: ${data.budget}\nMessage: ${data.message}`
-    );
-    window.location.href = `mailto:Clearlyst@gmail.com?subject=${subject}&body=${body}`;
+    // Show inline error message
+    let errEl = form.querySelector('.form-error-msg');
+    if (!errEl) {
+      errEl = document.createElement('p');
+      errEl.className = 'form-error-msg';
+      errEl.style.cssText = 'color:rgba(255,100,100,0.9);margin-top:12px;font-size:0.9rem;text-align:center;';
+      submitBtn.insertAdjacentElement('afterend', errEl);
+    }
+    errEl.textContent = 'Submission failed — please email us directly at Clearlyst@gmail.com';
   }
 });
 
