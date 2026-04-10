@@ -252,7 +252,7 @@
     </div>
   </section>
 
-  <!-- Proof of Work Carousel -->
+  <!-- Proof of Work -->
   <section class="section section-alt" id="work">
     <div class="container">
       <div class="section-header reveal">
@@ -260,33 +260,37 @@
         <h2 class="section-title">Real Campaigns,<br /><span class="gradient-text">Real Results.</span></h2>
         <p class="section-sub">A look at the ad creatives, campaigns, and results we've built for clients.</p>
       </div>
-      <div class="carousel-wrapper reveal">
-        <div class="carousel" id="carousel">
-          <div class="carousel-track" id="carouselTrack">
-            <div class="carousel-slide">
-              <img src="Screenshot%202026-04-10%20at%2012.45.14%20AM.png" alt="Campaign Results Screenshot" loading="lazy" />
-            </div>
-            <div class="carousel-slide">
-              <img src="Screenshot%202026-04-10%20at%2012.47.20%20AM.png" alt="Campaign Dashboard Screenshot" loading="lazy" />
-            </div>
-            <div class="carousel-slide carousel-slide--video">
-              <video src="FerrariAD_URSEA.mov" controls preload="metadata" playsinline></video>
-            </div>
-            <div class="carousel-slide carousel-slide--video">
-              <video src="PROF-APR9-PUN.mov" controls preload="metadata" playsinline></video>
-            </div>
-            <div class="carousel-slide carousel-slide--video">
-              <video src="V3.mov" controls preload="metadata" playsinline></video>
-            </div>
-          </div>
+
+      <!-- Campaign screenshots -->
+      <div class="work-screenshots reveal">
+        <div class="work-screenshot-item glass">
+          <img src="screenshot-1.png" alt="Campaign Results" loading="lazy" />
         </div>
-        <button class="carousel-btn carousel-btn--prev" id="carouselPrev" aria-label="Previous slide">
+        <div class="work-screenshot-item glass">
+          <img src="screenshot-2.png" alt="Campaign Dashboard" loading="lazy" />
+        </div>
+      </div>
+
+      <!-- Ad creative videos -->
+      <p class="work-label reveal">Ad Creatives</p>
+      <div class="work-videos-outer reveal">
+        <button class="vid-arrow vid-arrow--prev" id="vidPrev" aria-label="Previous video">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <button class="carousel-btn carousel-btn--next" id="carouselNext" aria-label="Next slide">
+        <div class="work-videos-scroll" id="workVideos">
+          <div class="work-video-item">
+            <video src="FerrariAD_URSEA.mov" controls preload="metadata" playsinline></video>
+          </div>
+          <div class="work-video-item">
+            <video src="PROF-APR9-PUN.mov" controls preload="metadata" playsinline></video>
+          </div>
+          <div class="work-video-item">
+            <video src="V3.mov" controls preload="metadata" playsinline></video>
+          </div>
+        </div>
+        <button class="vid-arrow vid-arrow--next" id="vidNext" aria-label="Next video">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <div class="carousel-dots" id="carouselDots"></div>
       </div>
     </div>
   </section>

@@ -219,82 +219,31 @@ form.querySelectorAll('input, select, textarea').forEach(field => {
 });
 
 
-// ── Proof of Work Carousel ────────────────────
+// ── Proof of Work — Video Row Arrows ─────────
 (function () {
-  const track  = document.getElementById('carouselTrack');
-  const prevBtn = document.getElementById('carouselPrev');
-  const nextBtn = document.getElementById('carouselNext');
-  const dotsEl = document.getElementById('carouselDots');
-  if (!track) return;
+  const scroll  = document.getElementById('workVideos');
+  const prevBtn = document.getElementById('vidPrev');
+  const nextBtn = document.getElementById('vidNext');
+  if (!scroll || !prevBtn || !nextBtn) return;
 
-  const slides = Array.from(track.querySelectorAll('.carousel-slide'));
-  const total  = slides.length;
-  let current  = 0;
-  let autoTimer;
-
-  // Build dots
-  slides.forEach((_, i) => {
-    const dot = document.createElement('button');
-    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-    dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
-    dot.addEventListener('click', () => { stopAuto(); goTo(i); startAuto(); });
-    dotsEl.appendChild(dot);
-  });
-
-  function goTo(index) {
-    // Pause any playing videos
-    track.querySelectorAll('video').forEach(v => v.pause());
-    current = ((index % total) + total) % total;
-    track.style.transform = `translateX(-${current * 100}%)`;
-    dotsEl.querySelectorAll('.carousel-dot').forEach((d, i) =>
-      d.classList.toggle('active', i === current)
-    );
+  function getSlideWidth() {
+    const item = scroll.querySelector('.work-video-item');
+    if (!item) return scroll.clientWidth * 0.72;
+    const gap = parseInt(getComputedStyle(scroll).gap) || 16;
+    return item.offsetWidth + gap;
   }
 
-  function startAuto() {
-    autoTimer = setInterval(() => {
-      const vid = slides[current].querySelector('video');
-      if (vid && !vid.paused) return; // don't skip while video plays
-      goTo(current + 1);
-    }, 4500);
-  }
-
-  function stopAuto() { clearInterval(autoTimer); }
-
-  prevBtn.addEventListener('click', () => { stopAuto(); goTo(current - 1); startAuto(); });
-  nextBtn.addEventListener('click', () => { stopAuto(); goTo(current + 1); startAuto(); });
-
-  // Swipe / drag support
-  const carousel = document.getElementById('carousel');
-  let dragStartX = 0;
-  let isDragging = false;
-
-  carousel.addEventListener('pointerdown', e => {
-    dragStartX = e.clientX;
-    isDragging = true;
+  prevBtn.addEventListener('click', () => {
+    scroll.scrollBy({ left: -getSlideWidth(), behavior: 'smooth' });
   });
-  carousel.addEventListener('pointerup', e => {
-    if (!isDragging) return;
-    isDragging = false;
-    const diff = dragStartX - e.clientX;
-    if (Math.abs(diff) > 44) {
-      stopAuto();
-      goTo(diff > 0 ? current + 1 : current - 1);
-      startAuto();
-    }
-  });
-  carousel.addEventListener('pointerleave', () => { isDragging = false; });
-
-  // Keyboard navigation
-  document.addEventListener('keydown', e => {
-    const section = document.getElementById('work');
-    const rect = section.getBoundingClientRect();
-    if (rect.top > window.innerHeight || rect.bottom < 0) return;
-    if (e.key === 'ArrowLeft')  { stopAuto(); goTo(current - 1); startAuto(); }
-    if (e.key === 'ArrowRight') { stopAuto(); goTo(current + 1); startAuto(); }
+  nextBtn.addEventListener('click', () => {
+    scroll.scrollBy({ left: getSlideWidth(), behavior: 'smooth' });
   });
 
-  startAuto();
+  // Prevent the touch from triggering vertical page scroll on the video row
+  scroll.addEventListener('touchmove', e => {
+    e.stopPropagation();
+  }, { passive: true });
 })();
 
 
