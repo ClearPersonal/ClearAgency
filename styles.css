@@ -1002,28 +1002,56 @@ img { max-width: 100%; display: block; }
 
 /* ── Work / Proof of Work ── */
 
-/* Screenshots */
-.work-screenshots {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+/* CPL callout */
+.cpl-callout {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 40px 48px;
+  border-radius: var(--radius);
   margin-bottom: 48px;
 }
 
-.work-screenshot-item {
-  border-radius: var(--radius);
-  overflow: hidden;
-  line-height: 0;
+.cpl-left {
+  flex-shrink: 0;
+  text-align: center;
 }
 
-.work-screenshot-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.5s var(--ease-out);
+.cpl-range {
+  font-size: clamp(44px, 6vw, 72px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.work-screenshot-item:hover img { transform: scale(1.02); }
+.cpl-range span {
+  opacity: 0.6;
+}
+
+.cpl-unit {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+  margin-top: 6px;
+}
+
+.cpl-divider {
+  width: 1px;
+  height: 80px;
+  background: var(--glass-border);
+  flex-shrink: 0;
+}
+
+.cpl-note {
+  font-size: 16px;
+  color: var(--text-sub);
+  line-height: 1.7;
+}
 
 /* Section label */
 .work-label {
@@ -1104,6 +1132,106 @@ img { max-width: 100%; display: block; }
 .vid-arrow--next { right: 8px; }
 
 
+/* ── Nav trial highlight ── */
+.nav-trial-link {
+  color: var(--accent-3) !important;
+  font-weight: 600 !important;
+}
+.nav-trial-link:hover { opacity: 0.8; }
+
+
+/* ── Free Trial Section ── */
+.trial-section { position: relative; z-index: 2; }
+
+.trial-banner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 72px 64px;
+  border-radius: calc(var(--radius) + 8px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  /* extra glow */
+  box-shadow: 0 0 80px rgba(91,164,255,0.1), 0 0 160px rgba(176,111,255,0.07);
+}
+
+.trial-badge-wrap { display: flex; justify-content: center; }
+
+.trial-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-3);
+  background: rgba(0,229,195,0.08);
+  border: 1px solid rgba(0,229,195,0.25);
+  letter-spacing: 0.02em;
+}
+
+.trial-title {
+  font-size: clamp(32px, 5vw, 54px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.trial-sub {
+  font-size: 17px;
+  color: var(--text-sub);
+  line-height: 1.7;
+  max-width: 620px;
+}
+
+.trial-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 40px;
+  text-align: left;
+  width: 100%;
+  max-width: 520px;
+}
+
+.trial-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.trial-list li svg {
+  width: 18px; height: 18px;
+  stroke: var(--accent-3);
+  flex-shrink: 0;
+}
+
+.btn-trial-cta {
+  padding: 17px 40px;
+  font-size: 17px;
+  border-radius: 14px;
+  box-shadow: 0 6px 32px rgba(91,164,255,0.4), 0 1px 0 rgba(255,255,255,0.2) inset;
+}
+.btn-trial-cta:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 48px rgba(91,164,255,0.55), 0 1px 0 rgba(255,255,255,0.2) inset;
+}
+.btn-trial-cta .arrow { transition: transform 0.3s var(--spring); }
+.btn-trial-cta:hover .arrow { transform: translateX(5px); }
+
+.trial-fine {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: -8px;
+}
+
+
 /* ── Scroll Reveal Animations ── */
 .reveal {
   opacity: 0;
@@ -1141,11 +1269,17 @@ img { max-width: 100%; display: block; }
   .section { padding: 80px 0; }
   .about-grid { gap: 40px; }
 
-  .work-screenshots { grid-template-columns: 1fr; }
   .work-video-item { flex: 0 0 72vw; max-height: none; }
   .vid-arrow { display: flex; }
   /* Push scroll content inward so arrows don't overlap first/last card */
   .work-videos-scroll { padding: 0 56px; gap: 16px; }
+
+  .cpl-callout { flex-direction: column; gap: 24px; padding: 32px 28px; text-align: center; }
+  .cpl-divider { width: 60px; height: 1px; }
+
+  .trial-banner { padding: 48px 28px; gap: 24px; }
+  .trial-list { grid-template-columns: 1fr; max-width: 100%; }
+  .btn-trial-cta { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 640px) {
