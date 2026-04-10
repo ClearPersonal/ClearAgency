@@ -219,6 +219,85 @@ form.querySelectorAll('input, select, textarea').forEach(field => {
 });
 
 
+// ── Proof of Work Carousel ────────────────────
+(function () {
+  const track  = document.getElementById('carouselTrack');
+  const prevBtn = document.getElementById('carouselPrev');
+  const nextBtn = document.getElementById('carouselNext');
+  const dotsEl = document.getElementById('carouselDots');
+  if (!track) return;
+
+  const slides = Array.from(track.querySelectorAll('.carousel-slide'));
+  const total  = slides.length;
+  let current  = 0;
+  let autoTimer;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+    dot.addEventListener('click', () => { stopAuto(); goTo(i); startAuto(); });
+    dotsEl.appendChild(dot);
+  });
+
+  function goTo(index) {
+    // Pause any playing videos
+    track.querySelectorAll('video').forEach(v => v.pause());
+    current = ((index % total) + total) % total;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    dotsEl.querySelectorAll('.carousel-dot').forEach((d, i) =>
+      d.classList.toggle('active', i === current)
+    );
+  }
+
+  function startAuto() {
+    autoTimer = setInterval(() => {
+      const vid = slides[current].querySelector('video');
+      if (vid && !vid.paused) return; // don't skip while video plays
+      goTo(current + 1);
+    }, 4500);
+  }
+
+  function stopAuto() { clearInterval(autoTimer); }
+
+  prevBtn.addEventListener('click', () => { stopAuto(); goTo(current - 1); startAuto(); });
+  nextBtn.addEventListener('click', () => { stopAuto(); goTo(current + 1); startAuto(); });
+
+  // Swipe / drag support
+  const carousel = document.getElementById('carousel');
+  let dragStartX = 0;
+  let isDragging = false;
+
+  carousel.addEventListener('pointerdown', e => {
+    dragStartX = e.clientX;
+    isDragging = true;
+  });
+  carousel.addEventListener('pointerup', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    const diff = dragStartX - e.clientX;
+    if (Math.abs(diff) > 44) {
+      stopAuto();
+      goTo(diff > 0 ? current + 1 : current - 1);
+      startAuto();
+    }
+  });
+  carousel.addEventListener('pointerleave', () => { isDragging = false; });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    const section = document.getElementById('work');
+    const rect = section.getBoundingClientRect();
+    if (rect.top > window.innerHeight || rect.bottom < 0) return;
+    if (e.key === 'ArrowLeft')  { stopAuto(); goTo(current - 1); startAuto(); }
+    if (e.key === 'ArrowRight') { stopAuto(); goTo(current + 1); startAuto(); }
+  });
+
+  startAuto();
+})();
+
+
 // ── Subtle cursor glow ────────────────────────
 // Only on non-touch devices
 if (window.matchMedia('(hover: hover)').matches) {
