@@ -261,7 +261,7 @@ if (window.matchMedia('(hover: hover)').matches) {
     width: 300px;
     height: 300px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(91,164,255,0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%);
     transform: translate(-50%, -50%);
     z-index: 1;
     transition: opacity 0.5s;
