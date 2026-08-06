@@ -95,6 +95,18 @@ form.addEventListener('submit', async (e) => {
   btnLoading.style.display = 'inline';
   submitBtn.disabled       = true;
 
+  // Fire-and-forget: notify the WhatsApp Zap. Independent of FormSubmit
+  // below, so a hiccup here never blocks the visitor's success state.
+  fetch('https://hooks.zapier.com/hooks/catch/26520606/46zb1x2/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...data,
+      lead_source: `${data.service} — ${data.city} — Budget: ${data.budget}`,
+      link_to_lead_info: `tel:${data.phone}`,
+    }),
+  }).catch(() => {});
+
   try {
     const response = await fetch('https://formsubmit.co/ajax/Clearlyst@gmail.com', {
       method: 'POST',
