@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Clearlyst Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+  body { background: #0a0a0a; color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .card { background: #171717; border: 1px solid #262626; border-radius: 12px; }
+  .stat-value { font-variant-numeric: tabular-nums; }
+  .status-active { background: #14532d; color: #86efac; }
+  .status-testing { background: #713f12; color: #fde047; }
+  .status-prospect { background: #1e3a8a; color: #93c5fd; }
+  .status-churned { background: #7f1d1d; color: #fca5a5; }
+  .tab { padding-bottom: 4px; font-size: 14px; }
+  .tab-active { border-bottom: 2px solid #f5f5f5; color: #f5f5f5; }
+  input, select, textarea { color-scheme: dark; }
+  canvas { max-height: 320px; }
+
+  /* Privacy switch */
+  .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; inset: 0; background: #404040; border-radius: 22px; transition: .2s; }
+  .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; top: 3px; background: #f5f5f5; border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider { background: #059669; }
+  .switch input:checked + .slider:before { transform: translateX(18px); }
+
+  /* Hide-money mode */
+  body.privacy-on .money {
+    filter: blur(7px);
+    user-select: none;
+    transition: filter .15s;
+  }
+  body.privacy-on .money:hover { filter: blur(0); }
+
+  /* Range slider */
+  input[type=range] { accent-color: #10b981; }
+
+  /* Details/summary custom marker */
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary { list-style: none; }
+
+  /* ==== Light mode overrides ==== */
+  body.theme-light {
+    background: #f9fafb;
+    color: #111827;
+  }
+  body.theme-light .card {
+    background: #ffffff;
+    border-color: #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  body.theme-light .status-active { background: #d1fae5; color: #065f46; }
+  body.theme-light .status-testing { background: #fef3c7; color: #92400e; }
+  body.theme-light .status-prospect { background: #dbeafe; color: #1e40af; }
+  body.theme-light .status-churned { background: #fee2e2; color: #991b1b; }
+  body.theme-light .tab-active { border-color: #111827 !important; color: #111827 !important; }
+  body.theme-light input, body.theme-light select, body.theme-light textarea { color-scheme: light; }
+
+  /* Neutral overrides */
+  body.theme-light .bg-neutral-800 { background-color: #f3f4f6 !important; color: #111827 !important; }
+  body.theme-light .bg-neutral-900,
+  body.theme-light .bg-neutral-900\/50 { background-color: #f9fafb !important; }
+  body.theme-light .hover\:bg-neutral-700:hover { background-color: #e5e7eb !important; }
+  body.theme-light .hover\:bg-neutral-900\/50:hover { background-color: #f3f4f6 !important; }
+  body.theme-light .text-neutral-100 { color: #111827 !important; }
+  body.theme-light .text-neutral-300 { color: #374151 !important; }
+  body.theme-light .text-neutral-400 { color: #4b5563 !important; }
+  body.theme-light .text-neutral-500 { color: #6b7280 !important; }
+  body.theme-light .hover\:text-white:hover { color: #111827 !important; }
+  body.theme-light .border-neutral-800 { border-color: #e5e7eb !important; }
+  body.theme-light .file\:bg-neutral-800::file-selector-button { background: #f3f4f6 !important; color: #111827 !important; }
+  body.theme-light .file\:text-neutral-100::file-selector-button { color: #111827 !important; }
+
+  /* Accent buttons (bg-white → dark, text-black → white) */
+  body.theme-light .bg-white:not(input):not(textarea) { background-color: #111827 !important; }
+  body.theme-light .text-black { color: #ffffff !important; }
+
+  /* Semantic colors tuned for light bg */
+  body.theme-light .text-yellow-400 { color: #b45309 !important; }
+  body.theme-light .text-emerald-400 { color: #047857 !important; }
+  body.theme-light .text-red-400 { color: #b91c1c !important; }
+  body.theme-light .text-red-200 { color: #7f1d1d !important; }
+  body.theme-light .bg-red-900\/50 { background-color: #fee2e2 !important; }
+
+  /* Modal backdrop */
+  body.theme-light .bg-black\/70 { background-color: rgba(15,23,42,0.35) !important; }
+
+  /* Privacy blur stays the same */
+</style>
+</head>
+<body class="min-h-screen">
+
+<!--
+  ============================================================
+  PORTAL PASSWORD
+  To set a new password, open the browser console on any page and run:
+      await (async p => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p)))].map(x=>x.toString(16).padStart(2,'0')).join(''))("YOUR-NEW-PASSWORD")
+  Paste the resulting hash string into the PASSWORD_HASH constant below.
+  ============================================================
+-->
+
+<!-- Login overlay -->
+<div id="auth-overlay" class="fixed inset-0 z-[100] bg-neutral-950 flex items-center justify-center p-4">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold text-white">Clearlyst Portal</h1>
+      <p class="text-neutral-500 text-sm mt-2">Enter password to continue</p>
+    </div>
+    <form id="auth-form" class="space-y-3">
+      <input id="auth-password" type="password" autofocus autocomplete="current-password"
+        placeholder="Password"
+        class="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-3 text-white text-center">
+      <label class="flex items-center justify-center gap-2 text-xs text-neutral-500 cursor-pointer select-none">
+        <input id="auth-remember" type="checkbox" checked class="accent-emerald-500">
+        Remember me on this device
+      </label>
+      <button type="submit" class="w-full bg-white text-black px-4 py-3 rounded font-medium">Unlock</button>
+      <p id="auth-error" class="text-red-400 text-sm text-center hidden">Wrong password</p>
+    </form>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+  <header class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-3 md:gap-4">
+    <div class="flex items-start justify-between md:block gap-3">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold">Agency Portal</h1>
+        <p class="text-neutral-500 text-xs mt-1" id="last-updated">Loading…</p>
+      </div>
+      <!-- Mobile-only toggles cluster (visible md:hidden hidden on desktop) -->
+      <div class="flex items-center gap-3 md:hidden shrink-0">
+        <label class="flex items-center gap-1.5 cursor-pointer select-none" title="Hide amounts">
+          <span class="text-[11px] text-neutral-400">Hide $</span>
+          <span class="switch"><input type="checkbox" class="privacy-toggle"><span class="slider"></span></span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer select-none" title="Light mode">
+          <span class="text-[11px] text-neutral-400">Light</span>
+          <span class="switch"><input type="checkbox" class="theme-toggle"><span class="slider"></span></span>
+        </label>
+        <button class="auth-signout text-[11px] text-neutral-400 hover:text-white" title="Sign out">Lock</button>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 md:gap-6 flex-wrap">
+      <div class="hidden md:flex items-center gap-4">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <span class="text-xs text-neutral-400">Hide amounts</span>
+          <span class="switch"><input type="checkbox" class="privacy-toggle"><span class="slider"></span></span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <span class="text-xs text-neutral-400">Light mode</span>
+          <span class="switch"><input type="checkbox" class="theme-toggle"><span class="slider"></span></span>
+        </label>
+        <button class="auth-signout text-xs text-neutral-400 hover:text-white" title="Sign out">Lock</button>
+      </div>
+      <nav class="flex gap-4 sm:gap-6 overflow-x-auto -mx-1 px-1 pb-1" id="nav">
+        <button data-tab="dashboard" class="tab tab-active whitespace-nowrap">Dashboard</button>
+        <button data-tab="clients" class="tab text-neutral-400 whitespace-nowrap">Clients</button>
+        <button data-tab="staff" class="tab text-neutral-400 whitespace-nowrap">Staff</button>
+        <button data-tab="data" class="tab text-neutral-400 whitespace-nowrap">Data</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Dashboard -->
+  <section id="tab-dashboard">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="card p-5">
+        <div class="text-xs text-neutral-400 uppercase tracking-wide">Current MRR</div>
+        <div class="stat-value money text-3xl font-bold mt-2" id="mrr-current">$0</div>
+        <div class="text-xs text-neutral-500 mt-1" id="mrr-current-sub">—</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-xs text-neutral-400 uppercase tracking-wide">Current ARR</div>
+        <div class="stat-value money text-3xl font-bold mt-2" id="arr-current">$0</div>
+        <div class="text-xs text-neutral-500 mt-1">MRR × 12</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-xs text-neutral-400 uppercase tracking-wide">Projected MRR</div>
+        <div class="stat-value money text-3xl font-bold mt-2 text-yellow-400" id="mrr-projected">$0</div>
+        <div class="text-xs text-neutral-500 mt-1">If full pipeline closes at base</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-xs text-neutral-400 uppercase tracking-wide">Ceiling MRR</div>
+        <div class="stat-value money text-3xl font-bold mt-2 text-emerald-400" id="mrr-ceiling">$0</div>
+        <div class="text-xs text-neutral-500 mt-1">With perf kickers maxed</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="card p-5">
+        <h3 class="font-semibold mb-4 text-sm">MRR by pipeline stage</h3>
+        <canvas id="chart-status"></canvas>
+      </div>
+      <div class="card p-5">
+        <h3 class="font-semibold mb-4 text-sm">MRR by client</h3>
+        <canvas id="chart-clients"></canvas>
+      </div>
+    </div>
+
+    <div class="card p-5 mt-4">
+      <h3 class="font-semibold mb-4 text-sm">Projected growth</h3>
+      <canvas id="chart-growth"></canvas>
+    </div>
+
+    <div class="card p-5 mt-4">
+      <h3 class="font-semibold mb-3 text-sm">Staff cost & profit</h3>
+      <div class="grid grid-cols-3 gap-4 text-sm">
+        <div>
+          <div class="text-xs text-neutral-400 uppercase">Staff cost / mo</div>
+          <div class="stat-value money text-xl font-semibold mt-1" id="staff-cost">$0</div>
+        </div>
+        <div>
+          <div class="text-xs text-neutral-400 uppercase">Est. profit (current)</div>
+          <div class="stat-value money text-xl font-semibold mt-1" id="profit-current">$0</div>
+        </div>
+        <div>
+          <div class="text-xs text-neutral-400 uppercase">Est. profit (projected)</div>
+          <div class="stat-value money text-xl font-semibold mt-1 text-yellow-400" id="profit-projected">$0</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clients -->
+  <section id="tab-clients" class="hidden">
+    <div class="flex flex-wrap gap-2 justify-between items-center mb-4">
+      <div class="flex gap-2 flex-wrap">
+        <button class="filter-btn px-3 py-1 rounded-full text-xs bg-neutral-800" data-filter="all">All</button>
+        <button class="filter-btn px-3 py-1 rounded-full text-xs bg-neutral-800" data-filter="active">Active</button>
+        <button class="filter-btn px-3 py-1 rounded-full text-xs bg-neutral-800" data-filter="testing">Testing</button>
+        <button class="filter-btn px-3 py-1 rounded-full text-xs bg-neutral-800" data-filter="prospect">Prospect</button>
+        <button class="filter-btn px-3 py-1 rounded-full text-xs bg-neutral-800" data-filter="churned">Churned</button>
+      </div>
+      <button id="add-client" class="bg-white text-black px-3 py-1.5 rounded text-sm font-medium">+ Add client</button>
+    </div>
+    <div class="card overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs text-neutral-400 uppercase bg-neutral-900/50">
+          <tr>
+            <th class="text-left px-4 py-3">Name</th>
+            <th class="text-left px-4 py-3">Location</th>
+            <th class="text-left px-4 py-3">Service</th>
+            <th class="text-left px-4 py-3">Status</th>
+            <th class="text-right px-4 py-3">Base MRR</th>
+            <th class="text-right px-4 py-3">Ceiling</th>
+            <th class="text-right px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody id="clients-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Client detail -->
+  <section id="tab-client-detail" class="hidden">
+    <button id="back-to-clients" class="text-neutral-400 hover:text-white text-sm mb-4">← Back to clients</button>
+
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-6">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-bold" id="cd-name">—</h2>
+        <p class="text-neutral-400 text-sm mt-1" id="cd-sub">—</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button id="cd-edit" class="bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded text-sm">Edit client</button>
+        <button id="cd-refresh-csv" class="bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded text-sm">Refresh CSV</button>
+        <button id="cd-refresh" class="bg-white text-black px-3 py-1.5 rounded text-sm font-medium">Refresh Meta data</button>
+      </div>
+    </div>
+
+    <!-- Meta connection -->
+    <div class="card p-5 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-semibold text-sm">Meta Ads connection</h3>
+        <span id="cd-conn-status" class="text-xs text-neutral-500">Not configured</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-3 text-sm">
+        <div>
+          <label class="text-xs text-neutral-400">Ad Account ID</label>
+          <input id="cd-account" placeholder="act_1234567890" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+        </div>
+        <div>
+          <label class="text-xs text-neutral-400">Access Token (needs ads_read + leads_retrieval)</label>
+          <input id="cd-token" type="password" placeholder="EAA..." class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-xs text-neutral-400">Sqft field name in lead form (leave blank to auto-detect)</label>
+          <input id="cd-sqft-field" placeholder="e.g. square_footage" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+        </div>
+      </div>
+      <div class="flex justify-end mt-3 gap-2">
+        <button id="cd-save-meta" class="bg-white text-black px-3 py-1.5 rounded text-sm font-medium">Save & fetch</button>
+      </div>
+      <p class="text-xs text-neutral-500 mt-3">Token stored locally in your browser only. Get a token from <a class="underline" href="https://developers.facebook.com/tools/explorer/" target="_blank">Graph API Explorer</a> or your Meta app.</p>
+    </div>
+
+    <!-- CSV/ZIP import fallback -->
+    <div class="card p-5 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-semibold text-sm">Import Meta lead export (CSV or ZIP)</h3>
+        <span id="cd-import-status" class="text-xs text-neutral-500">No import yet</span>
+      </div>
+      <p class="text-xs text-neutral-500 mb-3">Drop the ZIP or CSV(s) you downloaded from Meta Ads Manager → Lead Center → Export. Sqft field auto-detects (matches names containing "sqft", "square", "footage", or "size"). Ranges like "700 to 1100" use the average.</p>
+      <div class="flex items-center gap-3">
+        <input type="file" id="cd-import-file" accept=".csv,.zip,.tsv" multiple class="text-sm text-neutral-300 file:bg-neutral-800 file:text-neutral-100 file:border-0 file:px-3 file:py-1.5 file:rounded file:mr-3">
+        <button id="cd-import-clear" class="text-neutral-500 hover:text-red-300 text-xs">Clear imported data</button>
+      </div>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <div class="card p-4">
+        <div class="text-xs text-neutral-400 uppercase">Active campaigns</div>
+        <div class="stat-value text-2xl font-bold mt-1" id="cd-stat-campaigns">—</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-xs text-neutral-400 uppercase">Total leads</div>
+        <div class="stat-value text-2xl font-bold mt-1" id="cd-stat-leads">—</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-xs text-neutral-400 uppercase">Total sqft</div>
+        <div class="stat-value text-2xl font-bold mt-1" id="cd-stat-sqft">—</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-xs text-neutral-400 uppercase">Potential revenue</div>
+        <div class="stat-value money text-2xl font-bold mt-1 text-emerald-400" id="cd-stat-revenue">—</div>
+      </div>
+    </div>
+
+    <!-- Campaign breakdown -->
+    <div class="card overflow-x-auto mb-4">
+      <table class="w-full text-sm">
+        <thead class="text-xs text-neutral-400 uppercase bg-neutral-900/50">
+          <tr>
+            <th class="text-left px-4 py-3">Campaign</th>
+            <th class="text-left px-4 py-3">Status</th>
+            <th class="text-right px-4 py-3">Leads</th>
+            <th class="text-right px-4 py-3">Sqft (sum)</th>
+            <th class="text-right px-4 py-3">Potential revenue</th>
+          </tr>
+        </thead>
+        <tbody id="cd-campaigns-body">
+          <tr><td colspan="5" class="px-4 py-8 text-center text-neutral-500">Save Meta credentials to load campaigns.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Revenue % calculator -->
+    <div class="card p-5">
+      <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+        <h3 class="font-semibold text-sm">Closing rate calculator</h3>
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-neutral-400 uppercase">$ per sqft</label>
+          <div class="flex items-center bg-neutral-900 border border-neutral-800 rounded px-2 py-1">
+            <span class="text-neutral-500 text-sm mr-1">$</span>
+            <input id="cd-price" type="number" step="0.01" min="0" value="2" class="w-20 bg-transparent border-0 outline-none text-right text-sm">
+          </div>
+        </div>
+      </div>
+      <div class="grid md:grid-cols-3 gap-4 items-center">
+        <div>
+          <div class="text-xs text-neutral-400 uppercase">Total potential revenue</div>
+          <div class="stat-value money text-2xl font-bold mt-1" id="cd-calc-total">$0</div>
+          <div class="text-xs text-neutral-500 mt-1" id="cd-calc-formula">Sqft × $/sqft</div>
+        </div>
+        <div>
+          <label class="text-xs text-neutral-400 uppercase">Closing %</label>
+          <div class="flex items-center gap-3 mt-2">
+            <input type="range" min="0" max="100" step="1" value="20" id="cd-calc-percent" class="flex-1">
+            <input type="number" min="0" max="100" step="0.5" value="20" id="cd-calc-percent-num" class="w-20 bg-neutral-900 border border-neutral-800 rounded px-2 py-1 text-right">
+            <span class="text-neutral-400">%</span>
+          </div>
+          <div class="text-xs text-neutral-500 mt-1" id="cd-calc-closed-leads">—</div>
+        </div>
+        <div>
+          <div class="text-xs text-neutral-400 uppercase">Actual revenue</div>
+          <div class="stat-value money text-3xl font-bold mt-1 text-emerald-400" id="cd-calc-cut">$0</div>
+          <div class="text-xs text-neutral-500 mt-1" id="cd-calc-actual-formula">Closed leads × avg sqft × $/sqft</div>
+        </div>
+      </div>
+
+      <details class="mt-6 border-t border-neutral-800 pt-4 group">
+        <summary class="cursor-pointer text-sm font-semibold text-neutral-300 hover:text-white select-none list-none flex items-center gap-2">
+          <span class="inline-block transition-transform group-open:rotate-90">▶</span>
+          Ad spend, CPL &amp; ROI
+        </summary>
+        <div class="grid md:grid-cols-4 gap-4 mt-4">
+          <div>
+            <label class="text-xs text-neutral-400 uppercase">Amount spent today</label>
+            <div class="flex items-center bg-neutral-900 border border-neutral-800 rounded px-2 py-1.5 mt-1">
+              <span class="text-neutral-500 text-sm mr-1">$</span>
+              <input id="cd-spend" type="number" step="0.01" min="0" value="0" class="w-full bg-transparent border-0 outline-none text-sm">
+            </div>
+          </div>
+          <div>
+            <div class="text-xs text-neutral-400 uppercase">CPL</div>
+            <div class="stat-value money text-xl font-bold mt-1" id="cd-cpl">—</div>
+            <div class="text-xs text-neutral-500 mt-1">Spend &divide; leads</div>
+          </div>
+          <div>
+            <div class="text-xs text-neutral-400 uppercase">Profit</div>
+            <div class="stat-value money text-xl font-bold mt-1" id="cd-profit">—</div>
+            <div class="text-xs text-neutral-500 mt-1">Actual rev &minus; spend</div>
+          </div>
+          <div>
+            <div class="text-xs text-neutral-400 uppercase">ROI</div>
+            <div class="stat-value text-xl font-bold mt-1" id="cd-roi">—</div>
+            <div class="text-xs text-neutral-500 mt-1">(Rev &minus; spend) &divide; spend</div>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- Leads log -->
+    <div class="card overflow-x-auto mt-4">
+      <div class="flex justify-between items-center px-4 py-3 border-b border-neutral-800">
+        <h3 class="font-semibold text-sm">Recent leads</h3>
+        <span class="text-xs text-neutral-500" id="cd-leads-count">—</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="text-xs text-neutral-400 uppercase">
+          <tr>
+            <th class="text-left px-4 py-3 hidden sm:table-cell">Date</th>
+            <th class="text-left px-4 py-3 hidden md:table-cell">Campaign</th>
+            <th class="text-left px-4 py-3">Name</th>
+            <th class="text-left px-4 py-3">City</th>
+            <th class="text-right px-4 py-3">Sqft</th>
+          </tr>
+        </thead>
+        <tbody id="cd-leads-body">
+          <tr><td colspan="5" class="px-4 py-6 text-center text-neutral-500">No leads yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Staff -->
+  <section id="tab-staff" class="hidden">
+    <div class="flex justify-end mb-4">
+      <button id="add-staff" class="bg-white text-black px-3 py-1.5 rounded text-sm font-medium">+ Add staff</button>
+    </div>
+    <div class="card overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs text-neutral-400 uppercase bg-neutral-900/50">
+          <tr>
+            <th class="text-left px-4 py-3">Name</th>
+            <th class="text-left px-4 py-3">Role</th>
+            <th class="text-right px-4 py-3">Monthly cost</th>
+            <th class="text-left px-4 py-3">Notes</th>
+            <th class="text-right px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody id="staff-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Data -->
+  <section id="tab-data" class="hidden">
+    <div class="card p-5">
+      <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+        <h3 class="font-semibold text-sm">Raw data (JSON)</h3>
+        <div class="flex gap-2 flex-wrap">
+          <button id="copy-json" class="bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded text-sm">Copy</button>
+          <button id="download-json" class="bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded text-sm">Download data.json</button>
+          <button id="import-json" class="bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded text-sm">Import</button>
+          <input type="file" id="import-file" class="hidden" accept="application/json">
+          <button id="save-json" class="bg-white text-black px-3 py-1.5 rounded text-sm font-medium">Save edits</button>
+          <button id="reset-json" class="bg-red-900/50 text-red-200 px-3 py-1.5 rounded text-sm">Reset to seed</button>
+        </div>
+      </div>
+      <textarea id="raw-data" class="w-full h-96 bg-neutral-900 text-neutral-100 font-mono text-xs p-3 rounded border border-neutral-800"></textarea>
+      <p class="text-xs text-neutral-500 mt-3">Data auto-saves to browser localStorage. Download the JSON and commit to git to version-control your pipeline.</p>
+    </div>
+  </section>
+</div>
+
+<!-- Client modal -->
+<div id="client-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+  <div class="card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <h3 class="font-semibold text-lg mb-4" id="client-modal-title">Add client</h3>
+    <form id="client-form" class="space-y-3">
+      <input type="hidden" name="id">
+      <div>
+        <label class="text-xs text-neutral-400">Name</label>
+        <input name="name" required class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-neutral-400">Location</label>
+          <input name="location" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+        </div>
+        <div>
+          <label class="text-xs text-neutral-400">Service</label>
+          <input name="service" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="text-xs text-neutral-400">Status</label>
+          <select name="status" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+            <option value="active">Active</option>
+            <option value="testing">Testing</option>
+            <option value="prospect">Prospect</option>
+            <option value="churned">Churned</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-neutral-400">Base MRR</label>
+          <input name="mrr" type="number" step="1" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+        </div>
+        <div>
+          <label class="text-xs text-neutral-400">Ceiling</label>
+          <input name="ceiling" type="number" step="1" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-neutral-400">Start date</label>
+        <input name="startDate" type="date" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+      </div>
+      <div>
+        <label class="text-xs text-neutral-400">Notes</label>
+        <textarea name="notes" rows="3" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1"></textarea>
+      </div>
+      <div class="flex justify-between pt-2">
+        <button type="button" id="client-delete" class="text-red-400 text-sm hidden">Delete</button>
+        <div class="flex gap-2 ml-auto">
+          <button type="button" data-close="client" class="px-3 py-2 text-sm">Cancel</button>
+          <button type="submit" class="bg-white text-black px-4 py-2 rounded text-sm font-medium">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Staff modal -->
+<div id="staff-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+  <div class="card p-6 w-full max-w-md">
+    <h3 class="font-semibold text-lg mb-4" id="staff-modal-title">Add staff</h3>
+    <form id="staff-form" class="space-y-3">
+      <input type="hidden" name="id">
+      <div>
+        <label class="text-xs text-neutral-400">Name</label>
+        <input name="name" required class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+      </div>
+      <div>
+        <label class="text-xs text-neutral-400">Role</label>
+        <input name="role" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+      </div>
+      <div>
+        <label class="text-xs text-neutral-400">Monthly cost</label>
+        <input name="cost" type="number" step="1" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+      </div>
+      <div>
+        <label class="text-xs text-neutral-400">Notes</label>
+        <textarea name="notes" rows="2" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1"></textarea>
+      </div>
+      <div class="flex justify-between pt-2">
+        <button type="button" id="staff-delete" class="text-red-400 text-sm hidden">Delete</button>
+        <div class="flex gap-2 ml-auto">
+          <button type="button" data-close="staff" class="px-3 py-2 text-sm">Cancel</button>
+          <button type="submit" class="bg-white text-black px-4 py-2 rounded text-sm font-medium">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script id="seed" type="application/json">
+{
+  "clients": [
+    {
+      "id": "bp1",
+      "name": "BP Painting",
+      "location": "Brampton, ON",
+      "service": "Painting",
+      "status": "active",
+      "mrr": 700,
+      "ceiling": 700,
+      "startDate": "",
+      "notes": "Currently working with us",
+      "meta": {
+        "accessToken": "",
+        "adAccountId": "",
+        "sqftFieldName": "",
+        "pricePerSqft": 2
+      },
+      "spendToday": 0,
+      "cache": {
+        "ok": true,
+        "fetchedAt": 1786663764761,
+        "source": "csv",
+        "filesImported": [
+          "PNJ | WINNER 26_Leads_2026-08-12_2026-08-12.csv",
+          "ENG | WINNER 26_Leads_2026-08-12_2026-08-12.csv"
+        ],
+        "campaigns": [
+          {
+            "id": "c:120251134383770503",
+            "name": "ABO | AUG 12",
+            "effective_status": "IMPORTED"
+          }
+        ],
+        "leads": [
+          {
+            "id": "l:1100971458933749",
+            "created_time": "2026-08-13T17:06:06-04:00",
+            "campaign_id": "c:120251134383770503",
+            "campaign_name": "ABO | AUG 12",
+            "ad_id": "ag:120251134565150503",
+            "ad_name": "PNJ | WINNER 26",
+            "form_id": "f:1441651964456536",
+            "form_name": "Qualified-Painting",
+            "name": "Anna Mery",
+            "email": "Minakshijoseph@yahoo.ca",
+            "phone": "p:+16478861629",
+            "city": "Vaughan",
+            "sqft": 2200.0,
+            "sqft_raw": "2200"
+          },
+          {
+            "id": "l:1990318208295201",
+            "created_time": "2026-08-13T14:05:49-04:00",
+            "campaign_id": "c:120251134383770503",
+            "campaign_name": "ABO | AUG 12",
+            "ad_id": "ag:120251134565150503",
+            "ad_name": "PNJ | WINNER 26",
+            "form_id": "f:1441651964456536",
+            "form_name": "Qualified-Painting",
+            "name": "Vikram",
+            "email": "jeetdevgan@hotmail.com",
+            "phone": "p:+14165672213",
+            "city": "Brampton",
+            "sqft": 0,
+            "sqft_raw": "bro i need work . if you can adjust me"
+          },
+          {
+            "id": "l:1028146976863399",
+            "created_time": "2026-08-13T12:01:23-04:00",
+            "campaign_id": "c:120251134383770503",
+            "campaign_name": "ABO | AUG 12",
+            "ad_id": "ag:120251134565150503",
+            "ad_name": "PNJ | WINNER 26",
+            "form_id": "f:1441651964456536",
+            "form_name": "Qualified-Painting",
+            "name": "Rachna Purohit",
+            "email": "rachnapurohit@hotmail.com",
+            "phone": "p:+16478568244",
+            "city": "Toronto",
+            "sqft": 2000.0,
+            "sqft_raw": "2000"
+          },
+          {
+            "id": "l:1805423314151662",
+            "created_time": "2026-08-13T10:29:43-04:00",
+            "campaign_id": "c:120251134383770503",
+            "campaign_name": "ABO | AUG 12",
+            "ad_id": "ag:120251134565150503",
+            "ad_name": "PNJ | WINNER 26",
+            "form_id": "f:1441651964456536",
+            "form_name": "Qualified-Painting",
+            "name": "i.m.maulik",
+            "email": "mauliklimbachia84@gmail.com",
+            "phone": "p:+16478788327",
+            "city": "Brampton",
+            "sqft": 1900.0,
+            "sqft_raw": "1900"
+          },
+          {
+            "id": "l:1117575154129576",
+            "created_time": "2026-08-13T08:58:11-04:00",
+            "campaign_id": "c:120251134383770503",
+            "campaign_name": "ABO | AUG 12",
+            "ad_id": "ag:120251134565150503",
+            "ad_name": "PNJ | WINNER 26",
+            "form_id": "f:1441651964456536",
+            "form_name": "Qualified-Painting",
+            "name": "Sudershan Dulat",
+            "email": "sdulat99@gmail.com",
+            "phone": "p:+16472737339",
+            "city": "Mississauga",
+            "sqft": 2800.0,
+            "sqft_raw": "2800"
+          },
+          {
+            "id": "l:1066671759226265",
+            "created_time": "2026-08-13T05:23:03-04:00",
+            "campaign_id": "c:120251134383770503",
+            "campaign_name": "ABO | AUG 12",
+            "ad_id": "ag:120251134565150503",
+            "ad_name": "PNJ | WINNER 26",
+            "form_id": "f:1441651964456536",
+            "form_name": "Qualified-Painting",
+            "name": "Shamsher singh",
+            "email": "sharrysingh281@gmail.com",
+            "phone": "p:+14168041852",
+            "city": "Toronto",
+            "sqft": 900.0,
+            "sqft_raw": "700 to 1100"
+          },
+          {
+            "id": "l:2211692092948149",
+            "created_time": "2026-08-13T18:40:09-04:00",
+            "campaign_id": "c:120251134383770503",
+            "campaign_name": "ABO | AUG 12",
+            "ad_id": "ag:120251134829570503",
+            "ad_name": "ENG | WINNER 26",
+            "form_id": "f:1441651964456536",
+            "form_name": "Qualified-Painting",
+            "name": "JagDeep Chahal",
+            "email": "info@deepredconstruction.com",
+            "phone": "p:9052264778",
+            "city": "Brampton",
+            "sqft": 3600.0,
+            "sqft_raw": "Around 3600 sqft and also need to remove the popcorn ceiling and make the ceiling smooth."
+          },
+          {
+            "id": "l:1880219926286726",
+            "created_time": "2026-08-13T10:58:11-04:00",
+            "campaign_id": "c:120251134383770503",
+            "campaign_name": "ABO | AUG 12",
+            "ad_id": "ag:120251134829570503",
+            "ad_name": "ENG | WINNER 26",
+            "form_id": "f:1441651964456536",
+            "form_name": "Qualified-Painting",
+            "name": "Ravneet Sodhi",
+            "email": "er.ravneetsodhi@gmail.com",
+            "phone": "p:+16476862323",
+            "city": "Milton",
+            "sqft": 2600.0,
+            "sqft_raw": "2600"
+          }
+        ]
+      }
+    }
+  ],
+  "staff": []
+}
+</script>
+
+<script>
+const STORAGE_KEY = 'agency-portal-v2';
+const PRIVACY_KEY = 'agency-portal-privacy';
+const THEME_KEY = 'agency-portal-theme';
+const AUTH_KEY = 'agency-portal-auth';
+const GRAPH_BASE = 'https://graph.facebook.com/v19.0';
+
+// SHA-256 of the portal password. To change it, open the browser console and run the
+// snippet in the comment near the top of <body>, then paste the resulting hash here.
+const PASSWORD_HASH = 'd02004d39367a59b612ca7aa00b036994057fccaf1e98543fd0f9aa2bf54e5ed';
+
+/* ===== Auth gate ===== */
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+function unlock() {
+  const el = document.getElementById('auth-overlay');
+  if (el) el.remove();
+}
+
+function lock() {
+  localStorage.removeItem(AUTH_KEY);
+  sessionStorage.removeItem(AUTH_KEY);
+  location.reload();
+}
+
+document.getElementById('auth-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const pw = document.getElementById('auth-password').value;
+  const hash = await sha256Hex(pw);
+  const errEl = document.getElementById('auth-error');
+  if (hash === PASSWORD_HASH) {
+    errEl.classList.add('hidden');
+    if (document.getElementById('auth-remember').checked) {
+      localStorage.setItem(AUTH_KEY, '1');
+    } else {
+      sessionStorage.setItem(AUTH_KEY, '1');
+    }
+    unlock();
+  } else {
+    errEl.classList.remove('hidden');
+    document.getElementById('auth-password').value = '';
+  }
+});
+
+// If already authed, skip the overlay immediately (before anything else)
+if (localStorage.getItem(AUTH_KEY) === '1' || sessionStorage.getItem(AUTH_KEY) === '1') {
+  unlock();
+}
+
+
+let state = loadState();
+let currentTab = 'dashboard';
+let currentFilter = 'all';
+let currentClientId = null;
+const charts = {};
+
+function loadState() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) { try { return JSON.parse(stored); } catch (e) {} }
+  return JSON.parse(document.getElementById('seed').textContent);
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  updateTimestamp();
+  render();
+}
+
+function updateTimestamp() {
+  document.getElementById('last-updated').textContent = 'Saved ' + new Date().toLocaleString();
+}
+
+function fmt(n) {
+  if (!n && n !== 0) return '$0';
+  return '$' + Math.round(n).toLocaleString();
+}
+
+function fmtNum(n) {
+  if (!n && n !== 0) return '0';
+  return Math.round(n).toLocaleString();
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function computeMetrics() {
+  const active = state.clients.filter(c => c.status === 'active');
+  const testing = state.clients.filter(c => c.status === 'testing');
+  const prospects = state.clients.filter(c => c.status === 'prospect');
+  const mrrCurrent = active.reduce((s, c) => s + (+c.mrr || 0), 0);
+  const mrrTesting = testing.reduce((s, c) => s + (+c.mrr || 0), 0);
+  const mrrProspects = prospects.reduce((s, c) => s + (+c.mrr || 0), 0);
+  const mrrProjected = mrrCurrent + mrrTesting + mrrProspects;
+  const mrrCeiling = [...active, ...testing, ...prospects].reduce((s, c) => s + (+c.ceiling || +c.mrr || 0), 0);
+  const staffCost = state.staff.reduce((s, x) => s + (+x.cost || 0), 0);
+  return { mrrCurrent, mrrTesting, mrrProspects, mrrProjected, mrrCeiling, active, testing, prospects, staffCost };
+}
+
+function renderDashboard() {
+  const m = computeMetrics();
+  document.getElementById('mrr-current').textContent = fmt(m.mrrCurrent);
+  document.getElementById('mrr-current-sub').textContent = `${m.active.length} active client${m.active.length !== 1 ? 's' : ''}`;
+  document.getElementById('arr-current').textContent = fmt(m.mrrCurrent * 12);
+  document.getElementById('mrr-projected').textContent = fmt(m.mrrProjected);
+  document.getElementById('mrr-ceiling').textContent = fmt(m.mrrCeiling);
+  document.getElementById('staff-cost').textContent = fmt(m.staffCost);
+  document.getElementById('profit-current').textContent = fmt(m.mrrCurrent - m.staffCost);
+  document.getElementById('profit-projected').textContent = fmt(m.mrrProjected - m.staffCost);
+  renderStatusChart(m);
+  renderClientsChart();
+  renderGrowthChart(m);
+}
+
+function renderStatusChart(m) {
+  const ctx = document.getElementById('chart-status');
+  if (charts.status) charts.status.destroy();
+  charts.status = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Active', 'Testing', 'Prospect'],
+      datasets: [{
+        data: [m.mrrCurrent, m.mrrTesting, m.mrrProspects],
+        backgroundColor: ['#22c55e', '#eab308', '#3b82f6'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: chartLabel(), boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmt(ctx.parsed)}` } }
+      }
+    }
+  });
+}
+
+function renderClientsChart() {
+  const ctx = document.getElementById('chart-clients');
+  if (charts.clients) charts.clients.destroy();
+  const rows = [...state.clients]
+    .filter(c => c.status !== 'churned')
+    .sort((a, b) => (+b.ceiling || +b.mrr || 0) - (+a.ceiling || +a.mrr || 0));
+  charts.clients = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: rows.map(c => c.name),
+      datasets: [
+        {
+          label: 'Base MRR',
+          data: rows.map(c => +c.mrr || 0),
+          backgroundColor: rows.map(c => ({active:'#22c55e', testing:'#eab308', prospect:'#3b82f6'}[c.status] || '#737373'))
+        },
+        {
+          label: 'Ceiling upside',
+          data: rows.map(c => Math.max(0, (+c.ceiling || 0) - (+c.mrr || 0))),
+          backgroundColor: 'rgba(163, 163, 163, 0.35)'
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { stacked: true, ticks: { color: chartTick(), callback: v => '$' + v }, grid: { color: chartGrid() } },
+        y: { stacked: true, ticks: { color: chartLabel(), font: { size: 11 } }, grid: { display: false } }
+      },
+      plugins: {
+        legend: { labels: { color: chartLabel(), boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.x)}` } }
+      }
+    }
+  });
+}
+
+function renderGrowthChart(m) {
+  const ctx = document.getElementById('chart-growth');
+  if (charts.growth) charts.growth.destroy();
+  const c = m.mrrCurrent, t = m.mrrTesting, p = m.mrrProspects;
+  const ceilingExtra = m.mrrCeiling - m.mrrProjected;
+  const labels = ['Now', '+1mo', '+2mo', '+3mo', '+4mo', '+5mo', '+6mo', '+9mo', '+12mo'];
+  const base = [
+    c,
+    c + t * 0.5,
+    c + t,
+    c + t + p * 0.25,
+    c + t + p * 0.4,
+    c + t + p * 0.6,
+    c + t + p * 0.8,
+    c + t + p,
+    c + t + p
+  ];
+  const ceiling = base.map((v, i) => v + ceilingExtra * (i / (labels.length - 1)));
+  charts.growth = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Base projection', data: base, borderColor: '#eab308', backgroundColor: 'rgba(234,179,8,0.12)', fill: true, tension: 0.3 },
+        { label: 'Ceiling (perf maxed)', data: ceiling, borderColor: '#22c55e', borderDash: [6,6], fill: false, tension: 0.3 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { ticks: { color: chartTick() }, grid: { color: chartGrid() } },
+        y: { ticks: { color: chartTick(), callback: v => '$' + v }, grid: { color: chartGrid() } }
+      },
+      plugins: {
+        legend: { labels: { color: chartLabel(), boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` } }
+      }
+    }
+  });
+}
+
+function renderClients() {
+  const tbody = document.getElementById('clients-body');
+  const filtered = state.clients.filter(c => currentFilter === 'all' || c.status === currentFilter);
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-neutral-500">No clients match this filter.</td></tr>`;
+  } else {
+    tbody.innerHTML = filtered.map(c => `
+      <tr class="border-t border-neutral-800 hover:bg-neutral-900/50 cursor-pointer" data-open-client="${c.id}">
+        <td class="px-4 py-3 font-medium">${escapeHtml(c.name)}</td>
+        <td class="px-4 py-3 text-neutral-400">${escapeHtml(c.location || '')}</td>
+        <td class="px-4 py-3 text-neutral-400">${escapeHtml(c.service || '')}</td>
+        <td class="px-4 py-3"><span class="status-${c.status} px-2 py-0.5 rounded-full text-xs">${c.status}</span></td>
+        <td class="px-4 py-3 text-right stat-value money">${fmt(c.mrr)}</td>
+        <td class="px-4 py-3 text-right stat-value money text-neutral-400">${c.ceiling && +c.ceiling !== +c.mrr ? fmt(c.ceiling) : '—'}</td>
+        <td class="px-4 py-3 text-right">
+          <button data-open-client="${c.id}" class="text-neutral-400 hover:text-white text-xs mr-3">View</button>
+          <button data-edit-client="${c.id}" class="text-neutral-400 hover:text-white text-xs">Edit</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    const on = b.dataset.filter === currentFilter;
+    b.className = 'filter-btn px-3 py-1 rounded-full text-xs ' + (on ? 'bg-white text-black' : 'bg-neutral-800 text-neutral-300');
+  });
+}
+
+function renderStaff() {
+  const tbody = document.getElementById('staff-body');
+  if (!state.staff.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-neutral-500">No staff yet. Click "+ Add staff" to add one.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = state.staff.map(s => `
+    <tr class="border-t border-neutral-800 hover:bg-neutral-900/50">
+      <td class="px-4 py-3 font-medium">${escapeHtml(s.name)}</td>
+      <td class="px-4 py-3 text-neutral-400">${escapeHtml(s.role || '')}</td>
+      <td class="px-4 py-3 text-right stat-value money">${fmt(s.cost)}</td>
+      <td class="px-4 py-3 text-neutral-400 text-xs">${escapeHtml(s.notes || '')}</td>
+      <td class="px-4 py-3 text-right"><button data-edit-staff="${s.id}" class="text-neutral-400 hover:text-white text-xs">Edit</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderData() {
+  document.getElementById('raw-data').value = JSON.stringify(state, null, 2);
+}
+
+/* ===== Client detail ===== */
+
+function openClientDetail(id) {
+  const c = state.clients.find(x => x.id === id);
+  if (!c) return;
+  currentClientId = id;
+  if (!c.meta) c.meta = { accessToken: '', adAccountId: '', sqftFieldName: '', pricePerSqft: 2 };
+  switchTab('client-detail');
+  document.getElementById('cd-name').textContent = c.name;
+  document.getElementById('cd-sub').textContent = [c.service, c.location, c.status].filter(Boolean).join(' · ');
+  document.getElementById('cd-account').value = c.meta.adAccountId || '';
+  document.getElementById('cd-token').value = c.meta.accessToken || '';
+  document.getElementById('cd-sqft-field').value = c.meta.sqftFieldName || '';
+  document.getElementById('cd-price').value = c.meta.pricePerSqft ?? 2;
+  document.getElementById('cd-spend').value = c.spendToday ?? 0;
+  renderClientDetailFromCache();
+}
+
+function renderClientDetailFromCache() {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  const cache = c.cache;
+  const status = document.getElementById('cd-conn-status');
+  const importStatus = document.getElementById('cd-import-status');
+  if (cache && cache.ok && cache.source === 'csv') {
+    status.textContent = 'Using imported CSV · ' + new Date(cache.fetchedAt).toLocaleString();
+    status.className = 'text-xs text-emerald-400';
+    if (importStatus) {
+      importStatus.textContent = `Loaded ${cache.leads.length} lead${cache.leads.length !== 1 ? 's' : ''} from ${(cache.filesImported || []).length} file${(cache.filesImported || []).length !== 1 ? 's' : ''}`;
+      importStatus.className = 'text-xs text-emerald-400';
+    }
+  } else if (!c.meta.adAccountId || !c.meta.accessToken) {
+    status.textContent = 'Not configured';
+    status.className = 'text-xs text-neutral-500';
+  } else if (cache && cache.ok) {
+    status.textContent = 'Connected · last synced ' + new Date(cache.fetchedAt).toLocaleString();
+    status.className = 'text-xs text-emerald-400';
+  } else if (cache && cache.error) {
+    status.textContent = 'Error: ' + cache.error;
+    status.className = 'text-xs text-red-400';
+  } else {
+    status.textContent = 'Configured — not fetched yet';
+    status.className = 'text-xs text-yellow-400';
+  }
+
+  const campaigns = (cache && cache.campaigns) || [];
+  const leads = (cache && cache.leads) || [];
+  const price = +c.meta.pricePerSqft || 2;
+
+  const totalLeads = leads.length;
+  const totalSqft = leads.reduce((s, l) => s + (+l.sqft || 0), 0);
+  const totalRevenue = totalSqft * price;
+
+  document.getElementById('cd-stat-campaigns').textContent = campaigns.length;
+  document.getElementById('cd-stat-leads').textContent = fmtNum(totalLeads);
+  document.getElementById('cd-stat-sqft').textContent = fmtNum(totalSqft);
+  document.getElementById('cd-stat-revenue').textContent = fmt(totalRevenue);
+
+  // Campaign table
+  const cbody = document.getElementById('cd-campaigns-body');
+  if (!campaigns.length) {
+    cbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-neutral-500">${c.meta.accessToken ? 'No active campaigns found. Try Refresh.' : 'Save Meta credentials to load campaigns.'}</td></tr>`;
+  } else {
+    cbody.innerHTML = campaigns.map(cam => {
+      const cLeads = leads.filter(l => l.campaign_id === cam.id);
+      const cSqft = cLeads.reduce((s, l) => s + (+l.sqft || 0), 0);
+      const cRev = cSqft * price;
+      return `<tr class="border-t border-neutral-800">
+        <td class="px-4 py-3 font-medium">${escapeHtml(cam.name)}</td>
+        <td class="px-4 py-3"><span class="status-active px-2 py-0.5 rounded-full text-xs">${escapeHtml(cam.effective_status || cam.status || 'ACTIVE')}</span></td>
+        <td class="px-4 py-3 text-right stat-value">${fmtNum(cLeads.length)}</td>
+        <td class="px-4 py-3 text-right stat-value">${fmtNum(cSqft)}</td>
+        <td class="px-4 py-3 text-right stat-value money text-emerald-400">${fmt(cRev)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Calculator
+  document.getElementById('cd-calc-total').textContent = fmt(totalRevenue);
+  document.getElementById('cd-calc-formula').textContent = `${fmtNum(totalSqft)} sqft × $${price}`;
+  updateCalculatorCut();
+
+  // Leads log
+  const lbody = document.getElementById('cd-leads-body');
+  document.getElementById('cd-leads-count').textContent = totalLeads ? `${totalLeads} lead${totalLeads !== 1 ? 's' : ''}` : '—';
+  if (!leads.length) {
+    lbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-neutral-500">No leads yet.</td></tr>`;
+  } else {
+    const recent = [...leads].sort((a,b) => new Date(b.created_time) - new Date(a.created_time)).slice(0, 50);
+    lbody.innerHTML = recent.map(l => `
+      <tr class="border-t border-neutral-800">
+        <td class="px-4 py-3 text-neutral-400 text-xs hidden sm:table-cell">${l.created_time ? new Date(l.created_time).toLocaleDateString() : '—'}</td>
+        <td class="px-4 py-3 text-neutral-300 text-xs hidden md:table-cell">${escapeHtml(l.campaign_name || l.campaign_id || '—')}</td>
+        <td class="px-4 py-3">${escapeHtml(l.name || '—')}</td>
+        <td class="px-4 py-3 text-neutral-400">${escapeHtml(l.city || '—')}</td>
+        <td class="px-4 py-3 text-right stat-value">${l.sqft ? fmtNum(l.sqft) : '—'}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+function fmtDecimal(n) {
+  if (!isFinite(n)) return '0';
+  return Math.abs(n - Math.round(n)) < 0.05 ? String(Math.round(n)) : n.toFixed(1);
+}
+
+function updateCalculatorCut() {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  const cache = c.cache;
+  const leads = (cache && cache.leads) || [];
+  const price = +c.meta.pricePerSqft || 2;
+  const totalLeads = leads.length;
+  const totalSqft = leads.reduce((s, l) => s + (+l.sqft || 0), 0);
+  const avgSqft = totalLeads > 0 ? totalSqft / totalLeads : 0;
+  const pct = +document.getElementById('cd-calc-percent-num').value || 0;
+  const closedLeads = totalLeads * (pct / 100);
+  const actualRev = closedLeads * avgSqft * price;
+
+  document.getElementById('cd-calc-cut').textContent = fmt(actualRev);
+  document.getElementById('cd-calc-closed-leads').textContent =
+    totalLeads ? `≈ ${fmtDecimal(closedLeads)} of ${totalLeads} lead${totalLeads !== 1 ? 's' : ''} closed` : '—';
+  document.getElementById('cd-calc-actual-formula').textContent =
+    totalLeads ? `${fmtDecimal(closedLeads)} × ${fmtNum(avgSqft)} avg sqft × $${price}` : 'Closed leads × avg sqft × $/sqft';
+
+  updateSpendMetrics(actualRev, totalLeads);
+}
+
+function updateSpendMetrics(actualRev, totalLeads) {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  const spend = +c.spendToday || 0;
+  const cplEl = document.getElementById('cd-cpl');
+  const profitEl = document.getElementById('cd-profit');
+  const roiEl = document.getElementById('cd-roi');
+  if (!cplEl) return;
+
+  if (spend > 0 && totalLeads > 0) {
+    const cpl = spend / totalLeads;
+    cplEl.textContent = fmt(cpl);
+  } else {
+    cplEl.textContent = '—';
+  }
+  if (spend > 0) {
+    const profit = actualRev - spend;
+    profitEl.textContent = fmt(profit);
+    profitEl.className = 'stat-value money text-xl font-bold mt-1 ' + (profit >= 0 ? 'text-emerald-400' : 'text-red-400');
+    const roi = ((actualRev - spend) / spend) * 100;
+    roiEl.textContent = (roi >= 0 ? '+' : '') + fmtDecimal(roi) + '%';
+    roiEl.className = 'stat-value text-xl font-bold mt-1 ' + (roi >= 0 ? 'text-emerald-400' : 'text-red-400');
+  } else {
+    profitEl.textContent = '—';
+    profitEl.className = 'stat-value money text-xl font-bold mt-1';
+    roiEl.textContent = '—';
+    roiEl.className = 'stat-value text-xl font-bold mt-1';
+  }
+}
+
+/* ===== Meta API ===== */
+
+async function graphFetch(path, token, params = {}) {
+  const url = new URL(GRAPH_BASE + path);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  url.searchParams.set('access_token', token);
+  const res = await fetch(url.toString());
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message || 'Meta API error');
+  return json;
+}
+
+async function graphFetchAll(path, token, params = {}) {
+  let results = [];
+  let next = null;
+  let first = true;
+  while (first || next) {
+    let data;
+    if (first) {
+      data = await graphFetch(path, token, { ...params, limit: 100 });
+      first = false;
+    } else {
+      const res = await fetch(next);
+      data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+    }
+    if (data.data) results = results.concat(data.data);
+    next = data.paging && data.paging.next;
+    if (results.length > 5000) break; // safety cap
+  }
+  return results;
+}
+
+function detectSqft(fieldData, hint) {
+  if (!fieldData) return 0;
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const target = norm(hint);
+  let field = null;
+  if (target) {
+    field = fieldData.find(f => norm(f.name) === target || norm(f.name).includes(target));
+  }
+  if (!field) {
+    const patterns = ['sqft', 'squarefoot', 'squarefootage', 'squarefeet', 'sqfeet', 'projectsize', 'homesize', 'housesize', 'size'];
+    field = fieldData.find(f => {
+      const n = norm(f.name);
+      return patterns.some(p => n.includes(p));
+    });
+  }
+  if (!field || !field.values || !field.values.length) return 0;
+  return parseSqftValue(field.values[0]);
+}
+
+function parseSqftValue(raw) {
+  if (raw === undefined || raw === null) return 0;
+  const s = String(raw).trim();
+  if (!s) return 0;
+  // Extract all numeric groups (handles "700 to 1100", "700-1100", "1,500 sqft", "1500")
+  const nums = (s.replace(/,/g, '').match(/\d+(?:\.\d+)?/g) || []).map(parseFloat);
+  if (!nums.length) return 0;                    // junk text like "bro i need work"
+  if (nums.length >= 2) return (nums[0] + nums[1]) / 2;  // range → average
+  return nums[0];
+}
+
+function detectName(fieldData) {
+  if (!fieldData) return '';
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const f = fieldData.find(x => ['fullname','name','firstname'].includes(norm(x.name)));
+  return f && f.values && f.values[0] || '';
+}
+
+function detectCity(fieldData) {
+  if (!fieldData) return '';
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const f = fieldData.find(x => ['city','town'].includes(norm(x.name)));
+  return f && f.values && f.values[0] || '';
+}
+
+async function refreshMetaData(clientId) {
+  const c = state.clients.find(x => x.id === clientId);
+  if (!c) return;
+  const { accessToken, adAccountId, sqftFieldName } = c.meta;
+  if (!accessToken || !adAccountId) {
+    alert('Set Ad Account ID and Access Token first.');
+    return;
+  }
+  const status = document.getElementById('cd-conn-status');
+  status.textContent = 'Fetching…';
+  status.className = 'text-xs text-yellow-400';
+
+  try {
+    // 1. Active campaigns
+    const acct = adAccountId.startsWith('act_') ? adAccountId : 'act_' + adAccountId;
+    const campaigns = await graphFetchAll(`/${acct}/campaigns`, accessToken, {
+      fields: 'id,name,status,effective_status,objective',
+      effective_status: '["ACTIVE"]'
+    });
+    const activeIds = new Set(campaigns.map(x => x.id));
+
+    // 2. Lead forms on this ad account
+    const forms = await graphFetchAll(`/${acct}/leadgen_forms`, accessToken, {
+      fields: 'id,name,status'
+    });
+
+    // 3. Leads across all forms
+    let allLeads = [];
+    for (const form of forms) {
+      try {
+        const leads = await graphFetchAll(`/${form.id}/leads`, accessToken, {
+          fields: 'id,created_time,field_data,campaign_id,campaign_name,ad_id,ad_name,form_id'
+        });
+        leads.forEach(l => {
+          const sqft = detectSqft(l.field_data, sqftFieldName);
+          const name = detectName(l.field_data);
+          const city = detectCity(l.field_data);
+          allLeads.push({
+            id: l.id,
+            created_time: l.created_time,
+            campaign_id: l.campaign_id,
+            campaign_name: l.campaign_name,
+            ad_id: l.ad_id,
+            ad_name: l.ad_name,
+            form_id: form.id,
+            form_name: form.name,
+            sqft,
+            name,
+            city
+          });
+        });
+      } catch (e) {
+        console.warn('Skipped form ' + form.id + ':', e.message);
+      }
+    }
+    // Only include leads whose campaign is currently active
+    const activeLeads = allLeads.filter(l => activeIds.has(l.campaign_id));
+
+    c.cache = {
+      ok: true,
+      fetchedAt: Date.now(),
+      campaigns,
+      leads: activeLeads
+    };
+    saveState();
+    if (currentTab === 'client-detail' && currentClientId === clientId) {
+      renderClientDetailFromCache();
+    }
+  } catch (err) {
+    c.cache = { ok: false, error: err.message, fetchedAt: Date.now() };
+    saveState();
+    if (currentTab === 'client-detail' && currentClientId === clientId) {
+      renderClientDetailFromCache();
+    }
+    alert('Meta API error: ' + err.message);
+  }
+}
+
+/* ===== CSV / ZIP import ===== */
+
+// Decode bytes to string, sniffing UTF-16 LE/BE BOMs (Meta exports use UTF-16)
+function decodeBytes(buf) {
+  const b = new Uint8Array(buf);
+  if (b.length >= 2 && b[0] === 0xFF && b[1] === 0xFE) {
+    return new TextDecoder('utf-16le').decode(b.subarray(2));
+  }
+  if (b.length >= 2 && b[0] === 0xFE && b[1] === 0xFF) {
+    return new TextDecoder('utf-16be').decode(b.subarray(2));
+  }
+  if (b.length >= 3 && b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF) {
+    return new TextDecoder('utf-8').decode(b.subarray(3));
+  }
+  // Heuristic: many null bytes → treat as UTF-16 LE anyway
+  let nulls = 0;
+  for (let i = 0; i < Math.min(b.length, 400); i++) if (b[i] === 0) nulls++;
+  if (nulls > 40) return new TextDecoder('utf-16le').decode(b);
+  return new TextDecoder('utf-8').decode(b);
+}
+
+// Simple TSV/CSV parser with quoted-field support. Delimiter is auto-detected.
+function parseDelimited(text) {
+  // Detect delimiter from the first line
+  const firstLine = text.split(/\r?\n/, 1)[0] || '';
+  const delim = (firstLine.split('\t').length > firstLine.split(',').length) ? '\t' : ',';
+  const rows = [];
+  let cur = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else field += ch;
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === delim) { cur.push(field); field = ''; }
+      else if (ch === '\n') { cur.push(field); rows.push(cur); cur = []; field = ''; }
+      else if (ch === '\r') { /* skip */ }
+      else field += ch;
+    }
+  }
+  if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+  if (!rows.length) return [];
+  const header = rows.shift().map(h => h.trim());
+  return rows.filter(r => r.length && r.some(v => v !== '')).map(r => {
+    const o = {};
+    header.forEach((h, i) => { o[h] = (r[i] || '').trim().replace(/^"|"$/g, ''); });
+    return o;
+  });
+}
+
+function findColumn(row, needles) {
+  const keys = Object.keys(row);
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  for (const need of needles) {
+    const n = norm(need);
+    const hit = keys.find(k => norm(k).includes(n));
+    if (hit) return hit;
+  }
+  return null;
+}
+
+function mapCsvRowToLead(row, sqftFieldHint) {
+  const nameKey = findColumn(row, ['full_name', 'name']);
+  const emailKey = findColumn(row, ['email']);
+  const phoneKey = findColumn(row, ['phone']);
+  const cityKey = findColumn(row, ['city', 'town']);
+  const createdKey = findColumn(row, ['created_time', 'date', 'created']);
+  const campIdKey = findColumn(row, ['campaign_id']);
+  const campNameKey = findColumn(row, ['campaign_name']);
+  const adIdKey = findColumn(row, ['ad_id']);
+  const adNameKey = findColumn(row, ['ad_name']);
+  const formIdKey = findColumn(row, ['form_id']);
+  const formNameKey = findColumn(row, ['form_name']);
+  const idKey = findColumn(row, ['id']);
+  // Sqft column detection
+  let sqftKey = null;
+  if (sqftFieldHint) sqftKey = findColumn(row, [sqftFieldHint]);
+  if (!sqftKey) sqftKey = findColumn(row, ['sqft', 'square_foot', 'squarefeet', 'footage', 'property_size', 'home_size', 'size']);
+  return {
+    id: idKey ? row[idKey] : Math.random().toString(36).slice(2),
+    created_time: createdKey ? row[createdKey] : '',
+    campaign_id: campIdKey ? row[campIdKey] : '',
+    campaign_name: campNameKey ? row[campNameKey] : '',
+    ad_id: adIdKey ? row[adIdKey] : '',
+    ad_name: adNameKey ? row[adNameKey] : '',
+    form_id: formIdKey ? row[formIdKey] : '',
+    form_name: formNameKey ? row[formNameKey] : '',
+    name: nameKey ? row[nameKey] : '',
+    email: emailKey ? row[emailKey] : '',
+    phone: phoneKey ? row[phoneKey] : '',
+    city: cityKey ? row[cityKey] : '',
+    sqft: sqftKey ? parseSqftValue(row[sqftKey]) : 0,
+    sqft_raw: sqftKey ? row[sqftKey] : ''
+  };
+}
+
+async function importFiles(fileList) {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  const status = document.getElementById('cd-import-status');
+  status.textContent = 'Parsing…';
+  status.className = 'text-xs text-yellow-400';
+  try {
+    const csvBuffers = []; // {name, buffer}
+    for (const file of fileList) {
+      const name = file.name.toLowerCase();
+      if (name.endsWith('.zip')) {
+        const zip = await JSZip.loadAsync(await file.arrayBuffer());
+        for (const entry of Object.values(zip.files)) {
+          if (!entry.dir && /\.(csv|tsv|txt)$/i.test(entry.name)) {
+            csvBuffers.push({ name: entry.name, buffer: await entry.async('arraybuffer') });
+          }
+        }
+      } else {
+        csvBuffers.push({ name: file.name, buffer: await file.arrayBuffer() });
+      }
+    }
+    if (!csvBuffers.length) throw new Error('No CSV/TSV files found in upload');
+
+    const allLeads = [];
+    const campaignMap = {};
+    for (const { name, buffer } of csvBuffers) {
+      const text = decodeBytes(buffer);
+      const rows = parseDelimited(text);
+      for (const row of rows) {
+        const lead = mapCsvRowToLead(row, c.meta && c.meta.sqftFieldName);
+        allLeads.push(lead);
+        if (lead.campaign_id && !campaignMap[lead.campaign_id]) {
+          campaignMap[lead.campaign_id] = {
+            id: lead.campaign_id,
+            name: lead.campaign_name || '(unnamed)',
+            effective_status: 'IMPORTED'
+          };
+        }
+      }
+    }
+    c.cache = {
+      ok: true,
+      fetchedAt: Date.now(),
+      source: 'csv',
+      filesImported: csvBuffers.map(x => x.name),
+      campaigns: Object.values(campaignMap),
+      leads: allLeads
+    };
+    saveState();
+    if (currentTab === 'client-detail' && currentClientId === c.id) renderClientDetailFromCache();
+    status.textContent = `Imported ${allLeads.length} lead${allLeads.length !== 1 ? 's' : ''} from ${csvBuffers.length} file${csvBuffers.length !== 1 ? 's' : ''}`;
+    status.className = 'text-xs text-emerald-400';
+  } catch (err) {
+    status.textContent = 'Import error: ' + err.message;
+    status.className = 'text-xs text-red-400';
+    alert('Import failed: ' + err.message);
+  }
+}
+
+/* ===== Nav + rendering ===== */
+
+function render() {
+  if (currentTab === 'dashboard') renderDashboard();
+  else if (currentTab === 'clients') renderClients();
+  else if (currentTab === 'staff') renderStaff();
+  else if (currentTab === 'data') renderData();
+  else if (currentTab === 'client-detail') { if (currentClientId) renderClientDetailFromCache(); }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => {
+    const on = t.dataset.tab === tab || (tab === 'client-detail' && t.dataset.tab === 'clients');
+    t.className = 'tab' + (on ? ' tab-active' : ' text-neutral-400');
+  });
+  document.querySelectorAll('section[id^="tab-"]').forEach(s => {
+    s.classList.toggle('hidden', s.id !== 'tab-' + tab);
+  });
+  render();
+}
+
+function openClientModal(c) {
+  const form = document.getElementById('client-form');
+  form.reset();
+  document.getElementById('client-modal-title').textContent = c ? 'Edit client' : 'Add client';
+  document.getElementById('client-delete').classList.toggle('hidden', !c);
+  if (c) {
+    form.elements.id.value = c.id;
+    form.elements.name.value = c.name || '';
+    form.elements.location.value = c.location || '';
+    form.elements.service.value = c.service || '';
+    form.elements.status.value = c.status || 'prospect';
+    form.elements.mrr.value = c.mrr || '';
+    form.elements.ceiling.value = c.ceiling || '';
+    form.elements.startDate.value = c.startDate || '';
+    form.elements.notes.value = c.notes || '';
+  } else {
+    form.elements.status.value = 'prospect';
+  }
+  document.getElementById('client-modal').classList.remove('hidden');
+}
+
+function openStaffModal(s) {
+  const form = document.getElementById('staff-form');
+  form.reset();
+  document.getElementById('staff-modal-title').textContent = s ? 'Edit staff' : 'Add staff';
+  document.getElementById('staff-delete').classList.toggle('hidden', !s);
+  if (s) {
+    form.elements.id.value = s.id;
+    form.elements.name.value = s.name || '';
+    form.elements.role.value = s.role || '';
+    form.elements.cost.value = s.cost || '';
+    form.elements.notes.value = s.notes || '';
+  }
+  document.getElementById('staff-modal').classList.remove('hidden');
+}
+
+/* ===== Privacy switch ===== */
+
+function applyPrivacy(on) {
+  document.body.classList.toggle('privacy-on', on);
+  document.querySelectorAll('.privacy-toggle').forEach(el => el.checked = on);
+  localStorage.setItem(PRIVACY_KEY, on ? '1' : '0');
+}
+
+function applyTheme(light) {
+  document.body.classList.toggle('theme-light', light);
+  document.querySelectorAll('.theme-toggle').forEach(el => el.checked = light);
+  localStorage.setItem(THEME_KEY, light ? 'light' : 'dark');
+  // Re-render charts so tick/grid colors update
+  if (currentTab === 'dashboard') renderDashboard();
+}
+
+function chartTick() { return document.body.classList.contains('theme-light') ? '#4b5563' : '#737373'; }
+function chartLabel() { return document.body.classList.contains('theme-light') ? '#374151' : '#a3a3a3'; }
+function chartGrid() { return document.body.classList.contains('theme-light') ? '#e5e7eb' : '#262626'; }
+
+/* ===== Wire events ===== */
+
+document.getElementById('nav').addEventListener('click', e => {
+  if (e.target.dataset.tab) switchTab(e.target.dataset.tab);
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; renderClients(); });
+});
+
+document.getElementById('add-client').addEventListener('click', () => openClientModal(null));
+document.getElementById('add-staff').addEventListener('click', () => openStaffModal(null));
+
+document.addEventListener('click', e => {
+  const editC = e.target.getAttribute('data-edit-client');
+  const editS = e.target.getAttribute('data-edit-staff');
+  const openC = e.target.getAttribute('data-open-client') || (e.target.closest('[data-open-client]') && e.target.closest('[data-open-client]').getAttribute('data-open-client'));
+  const close = e.target.getAttribute('data-close');
+  if (editC) { e.stopPropagation(); openClientModal(state.clients.find(x => x.id === editC)); return; }
+  if (editS) { openStaffModal(state.staff.find(x => x.id === editS)); return; }
+  if (openC && !editC) openClientDetail(openC);
+  if (close === 'client') document.getElementById('client-modal').classList.add('hidden');
+  if (close === 'staff') document.getElementById('staff-modal').classList.add('hidden');
+});
+
+document.getElementById('back-to-clients').addEventListener('click', () => switchTab('clients'));
+
+document.getElementById('cd-edit').addEventListener('click', () => {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (c) openClientModal(c);
+});
+
+document.getElementById('cd-save-meta').addEventListener('click', async () => {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  if (!c.meta) c.meta = {};
+  c.meta.adAccountId = document.getElementById('cd-account').value.trim();
+  c.meta.accessToken = document.getElementById('cd-token').value.trim();
+  c.meta.sqftFieldName = document.getElementById('cd-sqft-field').value.trim();
+  c.meta.pricePerSqft = +document.getElementById('cd-price').value || 2;
+  saveState();
+  await refreshMetaData(currentClientId);
+});
+
+document.getElementById('cd-refresh').addEventListener('click', () => refreshMetaData(currentClientId));
+
+document.getElementById('cd-refresh-csv').addEventListener('click', () => {
+  // Re-open the file picker so user can select the updated export
+  document.getElementById('cd-import-file').click();
+});
+
+document.getElementById('cd-import-file').addEventListener('change', e => {
+  if (e.target.files && e.target.files.length) importFiles(e.target.files);
+  e.target.value = '';
+});
+
+document.getElementById('cd-import-clear').addEventListener('click', () => {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  if (!confirm('Clear imported lead data for this client?')) return;
+  c.cache = null;
+  saveState();
+  renderClientDetailFromCache();
+  const status = document.getElementById('cd-import-status');
+  status.textContent = 'No import yet';
+  status.className = 'text-xs text-neutral-500';
+});
+
+// Two-way binding on % input
+const pctRange = document.getElementById('cd-calc-percent');
+const pctNum = document.getElementById('cd-calc-percent-num');
+pctRange.addEventListener('input', () => { pctNum.value = pctRange.value; updateCalculatorCut(); });
+pctNum.addEventListener('input', () => {
+  let v = +pctNum.value; if (isNaN(v)) v = 0;
+  v = Math.max(0, Math.min(100, v));
+  pctRange.value = v;
+  updateCalculatorCut();
+});
+
+// Live-update $/sqft
+document.getElementById('cd-price').addEventListener('input', () => {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  c.meta.pricePerSqft = +document.getElementById('cd-price').value || 2;
+  saveState();
+});
+
+// Live-update spend → CPL / profit / ROI
+document.getElementById('cd-spend').addEventListener('input', () => {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  c.spendToday = +document.getElementById('cd-spend').value || 0;
+  saveState();
+});
+
+document.getElementById('client-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd);
+  data.mrr = +data.mrr || 0;
+  data.ceiling = +data.ceiling || data.mrr;
+  if (data.id) {
+    const idx = state.clients.findIndex(c => c.id === data.id);
+    state.clients[idx] = { ...state.clients[idx], ...data };
+  } else {
+    data.id = 'c' + Date.now();
+    data.meta = { accessToken: '', adAccountId: '', sqftFieldName: '', pricePerSqft: 2 };
+    data.spendToday = 0;
+    data.cache = null;
+    state.clients.push(data);
+  }
+  saveState();
+  document.getElementById('client-modal').classList.add('hidden');
+  if (currentTab === 'client-detail' && currentClientId === data.id) {
+    openClientDetail(data.id);
+  }
+});
+
+document.getElementById('client-delete').addEventListener('click', () => {
+  const id = document.getElementById('client-form').elements.id.value;
+  if (id && confirm('Delete this client?')) {
+    state.clients = state.clients.filter(c => c.id !== id);
+    saveState();
+    document.getElementById('client-modal').classList.add('hidden');
+    if (currentClientId === id) switchTab('clients');
+  }
+});
+
+document.getElementById('staff-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd);
+  data.cost = +data.cost || 0;
+  if (data.id) {
+    const idx = state.staff.findIndex(s => s.id === data.id);
+    state.staff[idx] = { ...state.staff[idx], ...data };
+  } else {
+    data.id = 's' + Date.now();
+    state.staff.push(data);
+  }
+  saveState();
+  document.getElementById('staff-modal').classList.add('hidden');
+});
+
+document.getElementById('staff-delete').addEventListener('click', () => {
+  const id = document.getElementById('staff-form').elements.id.value;
+  if (id && confirm('Delete this staff member?')) {
+    state.staff = state.staff.filter(s => s.id !== id);
+    saveState();
+    document.getElementById('staff-modal').classList.add('hidden');
+  }
+});
+
+document.getElementById('copy-json').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('raw-data').value);
+});
+
+document.getElementById('download-json').addEventListener('click', () => {
+  const blob = new Blob([document.getElementById('raw-data').value], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'data.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('save-json').addEventListener('click', () => {
+  try {
+    state = JSON.parse(document.getElementById('raw-data').value);
+    saveState();
+  } catch (e) { alert('Invalid JSON: ' + e.message); }
+});
+
+document.getElementById('reset-json').addEventListener('click', () => {
+  if (confirm('Reset to seed data? This clears your edits.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    state = loadState();
+    saveState();
+  }
+});
+
+document.getElementById('import-json').addEventListener('click', () => document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try { state = JSON.parse(ev.target.result); saveState(); }
+    catch (err) { alert('Invalid JSON'); }
+  };
+  reader.readAsText(file);
+});
+
+document.querySelectorAll('.privacy-toggle').forEach(el =>
+  el.addEventListener('change', e => applyPrivacy(e.target.checked))
+);
+document.querySelectorAll('.theme-toggle').forEach(el =>
+  el.addEventListener('change', e => applyTheme(e.target.checked))
+);
+document.querySelectorAll('.auth-signout').forEach(el =>
+  el.addEventListener('click', () => { if (confirm('Sign out of the portal?')) lock(); })
+);
+
+// Init
+applyPrivacy(localStorage.getItem(PRIVACY_KEY) === '1');
+applyTheme(localStorage.getItem(THEME_KEY) === 'light');
+updateTimestamp();
+render();
+</script>
+</body>
+</html>
