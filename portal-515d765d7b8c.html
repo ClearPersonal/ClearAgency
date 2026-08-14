@@ -272,44 +272,50 @@
       </div>
     </div>
 
-    <!-- Meta connection -->
-    <div class="card p-5 mb-4">
-      <div class="flex justify-between items-center mb-3">
-        <h3 class="font-semibold text-sm">Meta Ads connection</h3>
-        <span id="cd-conn-status" class="text-xs text-neutral-500">Not configured</span>
-      </div>
-      <div class="grid md:grid-cols-2 gap-3 text-sm">
-        <div>
-          <label class="text-xs text-neutral-400">Ad Account ID</label>
-          <input id="cd-account" placeholder="act_1234567890" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
-        </div>
-        <div>
-          <label class="text-xs text-neutral-400">Access Token (needs ads_read + leads_retrieval)</label>
-          <input id="cd-token" type="password" placeholder="EAA..." class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
-        </div>
-        <div class="md:col-span-2">
-          <label class="text-xs text-neutral-400">Sqft field name in lead form (leave blank to auto-detect)</label>
-          <input id="cd-sqft-field" placeholder="e.g. square_footage" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
-        </div>
-      </div>
-      <div class="flex justify-end mt-3 gap-2">
-        <button id="cd-save-meta" class="bg-white text-black px-3 py-1.5 rounded text-sm font-medium">Save & fetch</button>
-      </div>
-      <p class="text-xs text-neutral-500 mt-3">Token stored locally in your browser only. Get a token from <a class="underline" href="https://developers.facebook.com/tools/explorer/" target="_blank">Graph API Explorer</a> or your Meta app.</p>
-    </div>
+    <!-- Meta connection & CSV import (collapsed by default) -->
+    <details class="card p-5 mb-4 group">
+      <summary class="cursor-pointer text-sm font-semibold text-neutral-300 hover:text-white select-none list-none flex items-center gap-2">
+        <span class="inline-block transition-transform group-open:rotate-90">▶</span>
+        Meta connection &amp; lead import (advanced)
+      </summary>
 
-    <!-- CSV/ZIP import fallback -->
-    <div class="card p-5 mb-4">
-      <div class="flex justify-between items-center mb-3">
-        <h3 class="font-semibold text-sm">Import Meta lead export (CSV or ZIP)</h3>
-        <span id="cd-import-status" class="text-xs text-neutral-500">No import yet</span>
+      <div class="mt-4">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-semibold text-sm">Meta Ads connection</h3>
+          <span id="cd-conn-status" class="text-xs text-neutral-500">Not configured</span>
+        </div>
+        <div class="grid md:grid-cols-2 gap-3 text-sm">
+          <div>
+            <label class="text-xs text-neutral-400">Ad Account ID</label>
+            <input id="cd-account" placeholder="act_1234567890" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+          </div>
+          <div>
+            <label class="text-xs text-neutral-400">Access Token (needs ads_read + leads_retrieval)</label>
+            <input id="cd-token" type="password" placeholder="EAA..." class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-xs text-neutral-400">Sqft field name in lead form (leave blank to auto-detect)</label>
+            <input id="cd-sqft-field" placeholder="e.g. square_footage" class="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 mt-1">
+          </div>
+        </div>
+        <div class="flex justify-end mt-3 gap-2">
+          <button id="cd-save-meta" class="bg-white text-black px-3 py-1.5 rounded text-sm font-medium">Save & fetch</button>
+        </div>
+        <p class="text-xs text-neutral-500 mt-3">Token stored locally in your browser only. Get a token from <a class="underline" href="https://developers.facebook.com/tools/explorer/" target="_blank">Graph API Explorer</a> or your Meta app.</p>
       </div>
-      <p class="text-xs text-neutral-500 mb-3">Drop the ZIP or CSV(s) you downloaded from Meta Ads Manager → Lead Center → Export. Sqft field auto-detects (matches names containing "sqft", "square", "footage", or "size"). Ranges like "700 to 1100" use the average.</p>
-      <div class="flex items-center gap-3">
-        <input type="file" id="cd-import-file" accept=".csv,.zip,.tsv" multiple class="text-sm text-neutral-300 file:bg-neutral-800 file:text-neutral-100 file:border-0 file:px-3 file:py-1.5 file:rounded file:mr-3">
-        <button id="cd-import-clear" class="text-neutral-500 hover:text-red-300 text-xs">Clear imported data</button>
+
+      <div class="mt-6 border-t border-neutral-800 pt-4">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-semibold text-sm">Import Meta lead export (CSV or ZIP)</h3>
+          <span id="cd-import-status" class="text-xs text-neutral-500">No import yet</span>
+        </div>
+        <p class="text-xs text-neutral-500 mb-3">Drop the ZIP or CSV(s) you downloaded from Meta Ads Manager → Lead Center → Export. Sqft field auto-detects (matches names containing "sqft", "square", "footage", or "size"). Job value field auto-detects (matches names containing "job value", "quote", "price", "budget", or "amount"). Ranges like "700 to 1100" use the average.</p>
+        <div class="flex items-center gap-3">
+          <input type="file" id="cd-import-file" accept=".csv,.zip,.tsv" multiple class="text-sm text-neutral-300 file:bg-neutral-800 file:text-neutral-100 file:border-0 file:px-3 file:py-1.5 file:rounded file:mr-3">
+          <button id="cd-import-clear" class="text-neutral-500 hover:text-red-300 text-xs">Clear imported data</button>
+        </div>
       </div>
-    </div>
+    </details>
 
     <!-- Summary stats -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -322,7 +328,7 @@
         <div class="stat-value text-2xl font-bold mt-1" id="cd-stat-leads">—</div>
       </div>
       <div class="card p-4">
-        <div class="text-xs text-neutral-400 uppercase">Total sqft</div>
+        <div class="text-xs text-neutral-400 uppercase" id="cd-stat-sqft-label">Total sqft</div>
         <div class="stat-value text-2xl font-bold mt-1" id="cd-stat-sqft">—</div>
       </div>
       <div class="card p-4">
@@ -339,7 +345,7 @@
             <th class="text-left px-4 py-3">Campaign</th>
             <th class="text-left px-4 py-3">Status</th>
             <th class="text-right px-4 py-3">Leads</th>
-            <th class="text-right px-4 py-3">Sqft (sum)</th>
+            <th class="text-right px-4 py-3" id="cd-campaigns-basis-header">Sqft (sum)</th>
             <th class="text-right px-4 py-3">Potential revenue</th>
           </tr>
         </thead>
@@ -353,11 +359,20 @@
     <div class="card p-5">
       <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
         <h3 class="font-semibold text-sm">Closing rate calculator</h3>
-        <div class="flex items-center gap-2">
-          <label class="text-xs text-neutral-400 uppercase">$ per sqft</label>
-          <div class="flex items-center bg-neutral-900 border border-neutral-800 rounded px-2 py-1">
-            <span class="text-neutral-500 text-sm mr-1">$</span>
-            <input id="cd-price" type="number" step="0.01" min="0" value="2" class="w-20 bg-transparent border-0 outline-none text-right text-sm">
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-neutral-400 uppercase">Calculate by</label>
+            <select id="cd-calc-mode" class="bg-neutral-900 border border-neutral-800 rounded px-2 py-1.5 text-sm">
+              <option value="sqft">Sqft × $/sqft</option>
+              <option value="jobValue">Job value (from CSV)</option>
+            </select>
+          </div>
+          <div id="cd-price-wrap" class="flex items-center gap-2">
+            <label class="text-xs text-neutral-400 uppercase">$ per sqft</label>
+            <div class="flex items-center bg-neutral-900 border border-neutral-800 rounded px-2 py-1">
+              <span class="text-neutral-500 text-sm mr-1">$</span>
+              <input id="cd-price" type="number" step="0.01" min="0" value="2" class="w-20 bg-transparent border-0 outline-none text-right text-sm">
+            </div>
           </div>
         </div>
       </div>
@@ -428,7 +443,7 @@
             <th class="text-left px-4 py-3 hidden md:table-cell">Campaign</th>
             <th class="text-left px-4 py-3">Name</th>
             <th class="text-left px-4 py-3">City</th>
-            <th class="text-right px-4 py-3">Sqft</th>
+            <th class="text-right px-4 py-3" id="cd-leads-basis-header">Sqft</th>
           </tr>
         </thead>
         <tbody id="cd-leads-body">
@@ -1014,7 +1029,8 @@ function openClientDetail(id) {
   const c = state.clients.find(x => x.id === id);
   if (!c) return;
   currentClientId = id;
-  if (!c.meta) c.meta = { accessToken: '', adAccountId: '', sqftFieldName: '', pricePerSqft: 2 };
+  if (!c.meta) c.meta = { accessToken: '', adAccountId: '', sqftFieldName: '', pricePerSqft: 2, calcMode: 'sqft' };
+  if (!c.meta.calcMode) c.meta.calcMode = 'sqft';
   switchTab('client-detail');
   document.getElementById('cd-name').textContent = c.name;
   document.getElementById('cd-sub').textContent = [c.service, c.location, c.status].filter(Boolean).join(' · ');
@@ -1023,6 +1039,8 @@ function openClientDetail(id) {
   document.getElementById('cd-sqft-field').value = c.meta.sqftFieldName || '';
   document.getElementById('cd-price').value = c.meta.pricePerSqft ?? 2;
   document.getElementById('cd-spend').value = c.spendToday ?? 0;
+  document.getElementById('cd-calc-mode').value = c.meta.calcMode;
+  document.getElementById('cd-price-wrap').classList.toggle('hidden', c.meta.calcMode !== 'sqft');
   renderClientDetailFromCache();
 }
 
@@ -1056,14 +1074,22 @@ function renderClientDetailFromCache() {
   const campaigns = (cache && cache.campaigns) || [];
   const leads = (cache && cache.leads) || [];
   const price = +c.meta.pricePerSqft || 2;
+  const mode = c.meta.calcMode || 'sqft';
+  const basisOf = l => mode === 'jobValue' ? (+l.jobValue || 0) : (+l.sqft || 0);
+  const revenueOf = basis => mode === 'jobValue' ? basis : basis * price;
+  const basisLabel = mode === 'jobValue' ? 'Job value' : 'Sqft';
+
+  document.getElementById('cd-stat-sqft-label').textContent = mode === 'jobValue' ? 'Total job value' : 'Total sqft';
+  document.getElementById('cd-campaigns-basis-header').textContent = mode === 'jobValue' ? 'Job value (sum)' : 'Sqft (sum)';
+  document.getElementById('cd-leads-basis-header').textContent = basisLabel;
 
   const totalLeads = leads.length;
-  const totalSqft = leads.reduce((s, l) => s + (+l.sqft || 0), 0);
-  const totalRevenue = totalSqft * price;
+  const totalBasis = leads.reduce((s, l) => s + basisOf(l), 0);
+  const totalRevenue = revenueOf(totalBasis);
 
   document.getElementById('cd-stat-campaigns').textContent = campaigns.length;
   document.getElementById('cd-stat-leads').textContent = fmtNum(totalLeads);
-  document.getElementById('cd-stat-sqft').textContent = fmtNum(totalSqft);
+  document.getElementById('cd-stat-sqft').textContent = mode === 'jobValue' ? fmt(totalBasis) : fmtNum(totalBasis);
   document.getElementById('cd-stat-revenue').textContent = fmt(totalRevenue);
 
   // Campaign table
@@ -1073,13 +1099,13 @@ function renderClientDetailFromCache() {
   } else {
     cbody.innerHTML = campaigns.map(cam => {
       const cLeads = leads.filter(l => l.campaign_id === cam.id);
-      const cSqft = cLeads.reduce((s, l) => s + (+l.sqft || 0), 0);
-      const cRev = cSqft * price;
+      const cBasis = cLeads.reduce((s, l) => s + basisOf(l), 0);
+      const cRev = revenueOf(cBasis);
       return `<tr class="border-t border-neutral-800">
         <td class="px-4 py-3 font-medium">${escapeHtml(cam.name)}</td>
         <td class="px-4 py-3"><span class="status-active px-2 py-0.5 rounded-full text-xs">${escapeHtml(cam.effective_status || cam.status || 'ACTIVE')}</span></td>
         <td class="px-4 py-3 text-right stat-value">${fmtNum(cLeads.length)}</td>
-        <td class="px-4 py-3 text-right stat-value">${fmtNum(cSqft)}</td>
+        <td class="px-4 py-3 text-right stat-value">${mode === 'jobValue' ? fmt(cBasis) : fmtNum(cBasis)}</td>
         <td class="px-4 py-3 text-right stat-value money text-emerald-400">${fmt(cRev)}</td>
       </tr>`;
     }).join('');
@@ -1087,7 +1113,9 @@ function renderClientDetailFromCache() {
 
   // Calculator
   document.getElementById('cd-calc-total').textContent = fmt(totalRevenue);
-  document.getElementById('cd-calc-formula').textContent = `${fmtNum(totalSqft)} sqft × $${price}`;
+  document.getElementById('cd-calc-formula').textContent = mode === 'jobValue'
+    ? `Sum of job value across ${fmtNum(totalLeads)} lead${totalLeads !== 1 ? 's' : ''}`
+    : `${fmtNum(totalBasis)} sqft × $${price}`;
   updateCalculatorCut();
 
   // Leads log
@@ -1097,15 +1125,18 @@ function renderClientDetailFromCache() {
     lbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-neutral-500">No leads yet.</td></tr>`;
   } else {
     const recent = [...leads].sort((a,b) => new Date(b.created_time) - new Date(a.created_time)).slice(0, 50);
-    lbody.innerHTML = recent.map(l => `
+    lbody.innerHTML = recent.map(l => {
+      const basis = basisOf(l);
+      return `
       <tr class="border-t border-neutral-800">
         <td class="px-4 py-3 text-neutral-400 text-xs hidden sm:table-cell">${l.created_time ? new Date(l.created_time).toLocaleDateString() : '—'}</td>
         <td class="px-4 py-3 text-neutral-300 text-xs hidden md:table-cell">${escapeHtml(l.campaign_name || l.campaign_id || '—')}</td>
         <td class="px-4 py-3">${escapeHtml(l.name || '—')}</td>
         <td class="px-4 py-3 text-neutral-400">${escapeHtml(l.city || '—')}</td>
-        <td class="px-4 py-3 text-right stat-value">${l.sqft ? fmtNum(l.sqft) : '—'}</td>
+        <td class="px-4 py-3 text-right stat-value">${basis ? (mode === 'jobValue' ? fmt(basis) : fmtNum(basis)) : '—'}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
   }
 }
 
@@ -1120,18 +1151,24 @@ function updateCalculatorCut() {
   const cache = c.cache;
   const leads = (cache && cache.leads) || [];
   const price = +c.meta.pricePerSqft || 2;
+  const mode = c.meta.calcMode || 'sqft';
+  const basisOf = l => mode === 'jobValue' ? (+l.jobValue || 0) : (+l.sqft || 0);
   const totalLeads = leads.length;
-  const totalSqft = leads.reduce((s, l) => s + (+l.sqft || 0), 0);
-  const avgSqft = totalLeads > 0 ? totalSqft / totalLeads : 0;
+  const totalBasis = leads.reduce((s, l) => s + basisOf(l), 0);
+  const avgBasis = totalLeads > 0 ? totalBasis / totalLeads : 0;
   const pct = +document.getElementById('cd-calc-percent-num').value || 0;
   const closedLeads = totalLeads * (pct / 100);
-  const actualRev = closedLeads * avgSqft * price;
+  const actualRev = mode === 'jobValue' ? closedLeads * avgBasis : closedLeads * avgBasis * price;
 
   document.getElementById('cd-calc-cut').textContent = fmt(actualRev);
   document.getElementById('cd-calc-closed-leads').textContent =
     totalLeads ? `≈ ${fmtDecimal(closedLeads)} of ${totalLeads} lead${totalLeads !== 1 ? 's' : ''} closed` : '—';
   document.getElementById('cd-calc-actual-formula').textContent =
-    totalLeads ? `${fmtDecimal(closedLeads)} × ${fmtNum(avgSqft)} avg sqft × $${price}` : 'Closed leads × avg sqft × $/sqft';
+    totalLeads
+      ? (mode === 'jobValue'
+          ? `${fmtDecimal(closedLeads)} × ${fmt(avgBasis)} avg job value`
+          : `${fmtDecimal(closedLeads)} × ${fmtNum(avgBasis)} avg sqft × $${price}`)
+      : (mode === 'jobValue' ? 'Closed leads × avg job value' : 'Closed leads × avg sqft × $/sqft');
 
   updateSpendMetrics(actualRev, totalLeads);
 }
@@ -1243,6 +1280,15 @@ function detectCity(fieldData) {
   return f && f.values && f.values[0] || '';
 }
 
+function detectJobValue(fieldData) {
+  if (!fieldData) return 0;
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const patterns = ['jobvalue', 'quoteamount', 'quote', 'jobcost', 'projectvalue', 'budget', 'price', 'amount', 'value'];
+  const field = fieldData.find(f => patterns.some(p => norm(f.name).includes(p)));
+  if (!field || !field.values || !field.values.length) return 0;
+  return parseSqftValue(field.values[0]);
+}
+
 async function refreshMetaData(clientId) {
   const c = state.clients.find(x => x.id === clientId);
   if (!c) return;
@@ -1278,6 +1324,7 @@ async function refreshMetaData(clientId) {
         });
         leads.forEach(l => {
           const sqft = detectSqft(l.field_data, sqftFieldName);
+          const jobValue = detectJobValue(l.field_data);
           const name = detectName(l.field_data);
           const city = detectCity(l.field_data);
           allLeads.push({
@@ -1290,6 +1337,7 @@ async function refreshMetaData(clientId) {
             form_id: form.id,
             form_name: form.name,
             sqft,
+            jobValue,
             name,
             city
           });
@@ -1404,6 +1452,8 @@ function mapCsvRowToLead(row, sqftFieldHint) {
   let sqftKey = null;
   if (sqftFieldHint) sqftKey = findColumn(row, [sqftFieldHint]);
   if (!sqftKey) sqftKey = findColumn(row, ['sqft', 'square_foot', 'squarefeet', 'footage', 'property_size', 'home_size', 'size']);
+  // Job value / job cost column detection
+  const jobValueKey = findColumn(row, ['job_value', 'jobvalue', 'quote_amount', 'quote', 'job_cost', 'jobcost', 'project_value', 'budget', 'price', 'amount', 'value']);
   return {
     id: idKey ? row[idKey] : Math.random().toString(36).slice(2),
     created_time: createdKey ? row[createdKey] : '',
@@ -1418,7 +1468,9 @@ function mapCsvRowToLead(row, sqftFieldHint) {
     phone: phoneKey ? row[phoneKey] : '',
     city: cityKey ? row[cityKey] : '',
     sqft: sqftKey ? parseSqftValue(row[sqftKey]) : 0,
-    sqft_raw: sqftKey ? row[sqftKey] : ''
+    sqft_raw: sqftKey ? row[sqftKey] : '',
+    jobValue: jobValueKey ? parseSqftValue(row[jobValueKey]) : 0,
+    jobValue_raw: jobValueKey ? row[jobValueKey] : ''
   };
 }
 
@@ -1646,6 +1698,16 @@ document.getElementById('cd-price').addEventListener('input', () => {
   saveState();
 });
 
+// Switch between sqft-based and job-value-based calculation
+document.getElementById('cd-calc-mode').addEventListener('change', () => {
+  const c = state.clients.find(x => x.id === currentClientId);
+  if (!c) return;
+  const mode = document.getElementById('cd-calc-mode').value;
+  c.meta.calcMode = mode;
+  document.getElementById('cd-price-wrap').classList.toggle('hidden', mode !== 'sqft');
+  saveState();
+});
+
 // Live-update spend → CPL / profit / ROI
 document.getElementById('cd-spend').addEventListener('input', () => {
   const c = state.clients.find(x => x.id === currentClientId);
@@ -1665,7 +1727,7 @@ document.getElementById('client-form').addEventListener('submit', e => {
     state.clients[idx] = { ...state.clients[idx], ...data };
   } else {
     data.id = 'c' + Date.now();
-    data.meta = { accessToken: '', adAccountId: '', sqftFieldName: '', pricePerSqft: 2 };
+    data.meta = { accessToken: '', adAccountId: '', sqftFieldName: '', pricePerSqft: 2, calcMode: 'sqft' };
     data.spendToday = 0;
     data.cache = null;
     state.clients.push(data);
