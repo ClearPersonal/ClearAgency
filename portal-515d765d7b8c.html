@@ -324,8 +324,9 @@
         <div class="stat-value text-2xl font-bold mt-1" id="cd-stat-campaigns">—</div>
       </div>
       <div class="card p-4">
-        <div class="text-xs text-neutral-400 uppercase">Total leads</div>
+        <div class="text-xs text-neutral-400 uppercase" title="Excludes leads unchecked as dummy/job-seeker in the log below">Total leads</div>
         <div class="stat-value text-2xl font-bold mt-1" id="cd-stat-leads">—</div>
+        <div class="text-xs text-neutral-500 mt-1" id="cd-stat-leads-excluded"></div>
       </div>
       <div class="card p-4">
         <div class="text-xs text-neutral-400 uppercase" id="cd-stat-sqft-label">Total sqft</div>
@@ -444,10 +445,11 @@
             <th class="text-left px-4 py-3">Name</th>
             <th class="text-left px-4 py-3">City</th>
             <th class="text-right px-4 py-3" id="cd-leads-basis-header">Sqft</th>
+            <th class="text-center px-4 py-3" title="Uncheck for dummy leads / job seekers reaching out — excluded from totals, revenue &amp; CPL">Valid</th>
           </tr>
         </thead>
         <tbody id="cd-leads-body">
-          <tr><td colspan="5" class="px-4 py-6 text-center text-neutral-500">No leads yet.</td></tr>
+          <tr><td colspan="6" class="px-4 py-6 text-center text-neutral-500">No leads yet.</td></tr>
         </tbody>
       </table>
     </div>
@@ -1073,6 +1075,7 @@ function renderClientDetailFromCache() {
 
   const campaigns = (cache && cache.campaigns) || [];
   const leads = (cache && cache.leads) || [];
+  const validLeads = leads.filter(l => !l.invalid);
   const price = +c.meta.pricePerSqft || 2;
   const mode = c.meta.calcMode || 'sqft';
   const basisOf = l => mode === 'jobValue' ? (+l.jobValue || 0) : (+l.sqft || 0);
@@ -1083,12 +1086,14 @@ function renderClientDetailFromCache() {
   document.getElementById('cd-campaigns-basis-header').textContent = mode === 'jobValue' ? 'Job value (sum)' : 'Sqft (sum)';
   document.getElementById('cd-leads-basis-header').textContent = basisLabel;
 
-  const totalLeads = leads.length;
-  const totalBasis = leads.reduce((s, l) => s + basisOf(l), 0);
+  const totalLeads = validLeads.length;
+  const totalBasis = validLeads.reduce((s, l) => s + basisOf(l), 0);
   const totalRevenue = revenueOf(totalBasis);
 
+  const excludedCount = leads.length - validLeads.length;
   document.getElementById('cd-stat-campaigns').textContent = campaigns.length;
   document.getElementById('cd-stat-leads').textContent = fmtNum(totalLeads);
+  document.getElementById('cd-stat-leads-excluded').textContent = excludedCount > 0 ? `${excludedCount} excluded` : '';
   document.getElementById('cd-stat-sqft').textContent = mode === 'jobValue' ? fmt(totalBasis) : fmtNum(totalBasis);
   document.getElementById('cd-stat-revenue').textContent = fmt(totalRevenue);
 
@@ -1098,7 +1103,7 @@ function renderClientDetailFromCache() {
     cbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-neutral-500">${c.meta.accessToken ? 'No active campaigns found. Try Refresh.' : 'Save Meta credentials to load campaigns.'}</td></tr>`;
   } else {
     cbody.innerHTML = campaigns.map(cam => {
-      const cLeads = leads.filter(l => l.campaign_id === cam.id);
+      const cLeads = validLeads.filter(l => l.campaign_id === cam.id);
       const cBasis = cLeads.reduce((s, l) => s + basisOf(l), 0);
       const cRev = revenueOf(cBasis);
       return `<tr class="border-t border-neutral-800">
@@ -1122,18 +1127,20 @@ function renderClientDetailFromCache() {
   const lbody = document.getElementById('cd-leads-body');
   document.getElementById('cd-leads-count').textContent = totalLeads ? `${totalLeads} lead${totalLeads !== 1 ? 's' : ''}` : '—';
   if (!leads.length) {
-    lbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-neutral-500">No leads yet.</td></tr>`;
+    lbody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-neutral-500">No leads yet.</td></tr>`;
   } else {
     const recent = [...leads].sort((a,b) => new Date(b.created_time) - new Date(a.created_time)).slice(0, 50);
     lbody.innerHTML = recent.map(l => {
       const basis = basisOf(l);
+      const invalid = !!l.invalid;
       return `
-      <tr class="border-t border-neutral-800">
+      <tr class="border-t border-neutral-800${invalid ? ' opacity-40' : ''}">
         <td class="px-4 py-3 text-neutral-400 text-xs hidden sm:table-cell">${l.created_time ? new Date(l.created_time).toLocaleDateString() : '—'}</td>
         <td class="px-4 py-3 text-neutral-300 text-xs hidden md:table-cell">${escapeHtml(l.campaign_name || l.campaign_id || '—')}</td>
         <td class="px-4 py-3">${escapeHtml(l.name || '—')}</td>
         <td class="px-4 py-3 text-neutral-400">${escapeHtml(l.city || '—')}</td>
         <td class="px-4 py-3 text-right stat-value">${basis ? (mode === 'jobValue' ? fmt(basis) : fmtNum(basis)) : '—'}</td>
+        <td class="px-4 py-3 text-center"><input type="checkbox" data-toggle-lead="${escapeHtml(l.id)}" ${invalid ? '' : 'checked'} title="Uncheck if this is a dummy lead or someone reaching out for work"></td>
       </tr>
     `;
     }).join('');
@@ -1149,7 +1156,7 @@ function updateCalculatorCut() {
   const c = state.clients.find(x => x.id === currentClientId);
   if (!c) return;
   const cache = c.cache;
-  const leads = (cache && cache.leads) || [];
+  const leads = ((cache && cache.leads) || []).filter(l => !l.invalid);
   const price = +c.meta.pricePerSqft || 2;
   const mode = c.meta.calcMode || 'sqft';
   const basisOf = l => mode === 'jobValue' ? (+l.jobValue || 0) : (+l.sqft || 0);
@@ -1634,6 +1641,17 @@ document.addEventListener('click', e => {
   if (openC && !editC) openClientDetail(openC);
   if (close === 'client') document.getElementById('client-modal').classList.add('hidden');
   if (close === 'staff') document.getElementById('staff-modal').classList.add('hidden');
+});
+
+document.addEventListener('change', e => {
+  const leadId = e.target.getAttribute('data-toggle-lead');
+  if (!leadId) return;
+  const c = state.clients.find(x => x.id === currentClientId);
+  const lead = c && c.cache && c.cache.leads && c.cache.leads.find(l => l.id === leadId);
+  if (!lead) return;
+  lead.invalid = !e.target.checked;
+  saveState();
+  renderClientDetailFromCache();
 });
 
 document.getElementById('back-to-clients').addEventListener('click', () => switchTab('clients'));
