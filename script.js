@@ -223,34 +223,6 @@ form.querySelectorAll('input, select, textarea').forEach(field => {
 });
 
 
-// ── Proof of Work — Video Row Arrows ─────────
-(function () {
-  const scroll  = document.getElementById('workVideos');
-  const prevBtn = document.getElementById('vidPrev');
-  const nextBtn = document.getElementById('vidNext');
-  if (!scroll || !prevBtn || !nextBtn) return;
-
-  function getSlideWidth() {
-    const item = scroll.querySelector('.work-video-item');
-    if (!item) return scroll.clientWidth * 0.72;
-    const gap = parseInt(getComputedStyle(scroll).gap) || 16;
-    return item.offsetWidth + gap;
-  }
-
-  prevBtn.addEventListener('click', () => {
-    scroll.scrollBy({ left: -getSlideWidth(), behavior: 'smooth' });
-  });
-  nextBtn.addEventListener('click', () => {
-    scroll.scrollBy({ left: getSlideWidth(), behavior: 'smooth' });
-  });
-
-  // Prevent the touch from triggering vertical page scroll on the video row
-  scroll.addEventListener('touchmove', e => {
-    e.stopPropagation();
-  }, { passive: true });
-})();
-
-
 // ── Subtle cursor glow ────────────────────────
 // Only on non-touch devices
 if (window.matchMedia('(hover: hover)').matches) {

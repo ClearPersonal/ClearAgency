@@ -100,9 +100,9 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,500;1,600;1,700&display=swap" rel="stylesheet" />
 </head>
-<body class="light-theme">
+<body>
 
   <!-- Background Orbs -->
   <div class="bg-canvas" aria-hidden="true">
@@ -116,7 +116,7 @@
   <nav class="nav" id="nav">
     <div class="nav-inner">
       <a href="#" class="logo">
-        <img src="clearlyst-logo.png" alt="Clearlyst" class="logo-img" />
+        Clear<span class="logo-accent">lyst</span>
       </a>
       <ul class="nav-links">
         <li><a href="#services">Services</a></li>
@@ -147,20 +147,25 @@
   <!-- Hero -->
   <section class="hero" id="home">
     <div class="hero-content">
+      <p class="hero-quote reveal">
+        <em>"If your ads aren't profitable, they're just expensive content."</em>
+        <span class="hero-quote-cite">— Yuvraj K., Founder</span>
+      </p>
       <div class="hero-badge glass reveal">
         <span class="pulse-dot"></span>
         Limited spots — Free 2-Week Trial now open
       </div>
       <h1 class="hero-headline reveal">
         We Turn Ad Spend<br />
-        Into <span class="gradient-text">Real Revenue.</span>
+        Into <span class="gradient-text accent-italic">Real Revenue.</span>
       </h1>
+      <p class="hero-kicker reveal">Not an ads agency. <strong>Growth operators.</strong></p>
       <p class="hero-sub reveal">
         Clearlyst runs performance-driven Meta &amp; Google Ads for service businesses and product brands. Average cost per lead: <strong>$6–$15.</strong> Try us completely free for 2 weeks — no contracts, no risk.
       </p>
       <div class="hero-ctas reveal">
         <a href="#trial" class="btn btn-primary">Start My Free 2-Week Trial</a>
-        <a href="#services" class="btn btn-ghost">See What We Do <span class="arrow">→</span></a>
+        <a href="#services" class="btn-text-link">See What We Do <span class="arrow">→</span></a>
       </div>
     </div>
     <div class="scroll-hint reveal" aria-hidden="true">
@@ -354,7 +359,7 @@
       <div class="section-header reveal">
         <p class="section-tag">Proof of Work</p>
         <h2 class="section-title">Real Campaigns,<br /><span class="gradient-text">Real Results.</span></h2>
-        <p class="section-sub">A look at the ad creatives, campaigns, and results we've built for clients.</p>
+        <p class="section-sub">A look at the campaigns and results we've built for clients.</p>
       </div>
 
       <!-- CPL callout -->
@@ -365,37 +370,6 @@
         </div>
         <div class="cpl-divider"></div>
         <p class="cpl-note">Across every industry we've run — from concrete contractors to clothing brands — our campaigns consistently deliver qualified, ready-to-buy leads in this range. You won't find that at most agencies.</p>
-      </div>
-
-      <!-- Ad creative videos -->
-      <p class="work-label reveal">Ad Creatives</p>
-      <div class="work-videos-outer reveal">
-        <button class="vid-arrow vid-arrow--prev" id="vidPrev" aria-label="Previous video">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <div class="work-videos-scroll" id="workVideos">
-          <div class="work-video-item">
-            <video src="FerrariAD_URSEA.mov" controls preload="metadata" playsinline></video>
-          </div>
-          <div class="work-video-item">
-            <video src="PROF-APR9-PUN.mov" controls preload="metadata" playsinline></video>
-          </div>
-          <div class="work-video-item">
-            <video src="V3.mov" controls preload="metadata" playsinline></video>
-          </div>
-          <div class="work-video-item">
-            <video src="AI-AD1.mov" controls preload="metadata" playsinline></video>
-          </div>
-          <div class="work-video-item">
-            <video src="drivewayrenoADresults.mov" controls preload="metadata" playsinline></video>
-          </div>
-          <div class="work-video-item work-image-item">
-            <img src="US VISA Application2.png" alt="US Visa Campaign Ad Results" loading="lazy" />
-          </div>
-        </div>
-        <button class="vid-arrow vid-arrow--next" id="vidNext" aria-label="Next video">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
       </div>
     </div>
   </section>
@@ -422,7 +396,7 @@
         </div>
         <div class="about-card glass reveal">
           <div class="about-avatar">
-            <span>YK</span>
+            <img src="founderheadshot-avatar.png" alt="Yuvraj K., Founder of Clearlyst" />
           </div>
           <div class="about-info">
             <h4>Yuvraj K.</h4>
@@ -578,7 +552,7 @@
       <div class="footer-inner">
         <div class="footer-brand">
           <a href="#" class="logo">
-            <img src="clearlyst-logo.png" alt="Clearlyst" class="logo-img" />
+            Clear<span class="logo-accent">lyst</span>
           </a>
           <p>Performance marketing for businesses built to grow.</p>
         </div>
