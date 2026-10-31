@@ -995,6 +995,95 @@ strong { color: var(--text); font-weight: 600; }
 }
 
 
+/* ── Team stack (founder card) ── */
+.team-stack { padding: 28px 26px; display: flex; flex-direction: column; gap: 20px; }
+.stack-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stack-avatars { display: flex; }
+.stack-avatars span {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--cyan);
+  background: var(--bg-2);
+  border: 1px solid rgba(34,211,238,0.4);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+.stack-avatars span + span { margin-left: -9px; }
+.stack-avatars span:first-child { background: var(--grad); color: var(--on-accent); border-color: transparent; }
+.stack-avatars .more { color: var(--green); border-color: rgba(74,222,128,0.45); }
+.stack-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.stack-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+.stack-list li {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px;
+  transition: background 0.25s var(--ease-out);
+}
+.stack-list li + li { border-top: 1px solid var(--line); }
+.stack-list li:hover { background: rgba(34,211,238,0.05); }
+.stack-list li > div { flex: 1; min-width: 0; }
+.stack-list h4 { font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+.stack-list p { font-size: 12.5px; color: var(--text-sub); line-height: 1.4; }
+.stack-ico {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--cyan);
+  background: var(--grad-soft);
+  border: 1px solid rgba(34,211,238,0.22);
+}
+.stack-list .is-lead { background: rgba(34,211,238,0.06); }
+.stack-list .is-lead .stack-ico { background: var(--grad); color: var(--on-accent); border-color: transparent; }
+.stack-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green);
+  padding: 3px 8px;
+  border: 1px solid rgba(74,222,128,0.35);
+  border-radius: 99px;
+}
+
+
+/* ── Departments ── */
+.dept-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.dept { padding: 24px 22px 26px; display: flex; flex-direction: column; gap: 8px; }
+.dept:hover { transform: translateY(-4px); }
+.dept-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--cyan);
+  margin-bottom: 10px;
+}
+.dept h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; }
+.dept p { font-size: 14px; color: var(--text-sub); line-height: 1.55; }
+.dept-cta { border-style: dashed; border-color: rgba(74,222,128,0.35); }
+.dept-cta .dept-code { color: var(--green); }
+
+@media (max-width: 1080px) { .dept-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 800px)  { .dept-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .dept-grid { grid-template-columns: 1fr; } .dept-code { margin-bottom: 4px; } }
+
+
 /* ── Contact / Audit form ── */
 .form-wrapper {
   max-width: 860px;
@@ -1221,7 +1310,7 @@ strong { color: var(--text); font-weight: 600; }
   .timeline { grid-template-columns: repeat(2, 1fr); row-gap: 48px; }
   .timeline-rail { display: none; }
   .about-grid { grid-template-columns: 1fr; gap: 48px; }
-  .about-card { max-width: 480px; }
+  .about-card, .team-stack { max-width: 520px; }
 }
 
 @media (max-width: 800px) {
